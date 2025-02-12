@@ -1,0 +1,15 @@
+# Database connection configuration
+DB_TYPE=postgres
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=
+DATABASE_PASSWORD=
+DATABASE_NAME=
+
+# TypeORM options
+DB_SYNCHRONIZE=false
+DB_LOGGING=true
+
+# Application settings
+PORT=3000
+NODE_ENV=development
