@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  opportunities:
+    build: .
+    container_name: opportunities-service
+    ports:
+      - "3000:3000"
+    environment:
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=
+      - DB_PASSWORD=
+      - DB_DATABASE=
+      - DB_SYNCHRONIZE=false
+    depends_on:
+      - postgres
+    networks:
+      - opportunity-network
+
+  postgres:
+    image: postgres:15
+    container_name: opportunities-db
+    restart: always
+    environment:
+      POSTGRES_USER: 
+      POSTGRES_PASSWORD: 
+      POSTGRES_DB: 
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - opportunity-network
+
+volumes:
+  pgdata:
+
+networks:
+  opportunity-network:
