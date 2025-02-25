@@ -10,13 +10,13 @@ import {
   NotFoundException,
   Res,
   HttpStatus,
-} from "@nestjs/common";
-import { OpportunityApplicationService } from "./opportunity_applications.service";
-import { CreateOpportunityApplicationDto } from "./dto/create-opportunity-application.dto";
-import { UpdateOpportunityApplicationDto } from "./dto/update-opportunity-application.dto";
-import APIResponse from "modules/common/responses/response";
+} from '@nestjs/common';
+import { OpportunityApplicationService } from './opportunity_applications.service';
+import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
+import { UpdateOpportunityApplicationDto } from './dto/update-opportunity-application.dto';
+import APIResponse from 'modules/common/responses/response';
 
-@Controller("opportunity-applications")
+@Controller('opportunity-applications')
 export class OpportunityApplicationController {
   constructor(
     private readonly opportunityApplicationService: OpportunityApplicationService
@@ -25,16 +25,16 @@ export class OpportunityApplicationController {
   @Post()
   create(
     @Body() createOpportunityApplicationDto: CreateOpportunityApplicationDto,
-    @Query("userId") userId: string,
+    @Query('userId') userId: string,
     @Res() res: any // Ensure res is properly typed
   ) {
     // Validate userId
     if (!userId) {
       return APIResponse.error(
         res,
-        "CREATE_OPPORTUNITY_APPLICATION",
-        "MISSING_USER_ID",
-        "UserId is required",
+        'CREATE_OPPORTUNITY_APPLICATION',
+        'MISSING_USER_ID',
+        'UserId is required',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -54,24 +54,24 @@ export class OpportunityApplicationController {
     return this.opportunityApplicationService.findAll(query, res);
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string, @Res() res: any) {
+  @Get(':id')
+  findOne(@Param('id') id: string, @Res() res: any) {
     return this.opportunityApplicationService.findOne(id, res);
   }
 
-  @Put(":id")
+  @Put(':id')
   update(
-    @Param("id") id: string,
-    @Query("userId") userId: string,
+    @Param('id') id: string,
+    @Query('userId') userId: string,
     @Body() updateOpportunityApplicationDto: UpdateOpportunityApplicationDto,
     @Res() res: any
   ) {
     if (!userId) {
       return APIResponse.error(
         res,
-        "UserId is required.",
-        "ERROR_MISSING_USER_ID",
-        "User ID is required for updating the application",
+        'UserId is required.',
+        'ERROR_MISSING_USER_ID',
+        'User ID is required for updating the application',
         HttpStatus.BAD_REQUEST
       );
     }
@@ -86,10 +86,10 @@ export class OpportunityApplicationController {
     );
   }
 
-  @Patch(":id/archive")
+  @Patch(':id/archive')
   async archive(
-    @Param("id") id: string,
-    @Query("userId") userId: string,
+    @Param('id') id: string,
+    @Query('userId') userId: string,
     @Res() res: any
   ) {
     return this.opportunityApplicationService.archive(res, id, userId);

@@ -1,4 +1,4 @@
-import { IsOptional, IsUUID, IsString, IsNotEmpty } from "class-validator";
+import { IsOptional, IsUUID, IsString, IsNotEmpty } from 'class-validator';
 
 export class UpdateSkillDto {
   @IsOptional()

@@ -1,21 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { OpportunityApplication } from "../../opportunity_applications/entities/opportunity-application.entity";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { OpportunityApplication } from '../../opportunity_applications/entities/opportunity-application.entity';
 
-@Entity("application_statuses")
+@Entity('application_statuses')
 export class ApplicationStatus {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column({ type: "varchar", length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   status?: string;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: Date;
 
   @Column({
-    type: "timestamp",
-    default: () => "CURRENT_TIMESTAMP",
-    onUpdate: "CURRENT_TIMESTAMP",
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at?: Date;
 

@@ -5,7 +5,7 @@ import {
   IsString,
   IsNotEmpty,
   IsArray,
-} from "class-validator";
+} from 'class-validator';
 
 export class CreateOpportunityApplicationDto {
   @IsUUID()

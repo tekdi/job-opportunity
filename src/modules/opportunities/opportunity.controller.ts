@@ -9,19 +9,19 @@ import {
   NotFoundException,
   Patch,
   Res,
-} from "@nestjs/common";
-import { OpportunityService } from "./opportunity.service";
-import { CreateOpportunityDto } from "./dto/create-opportunity.dto";
-import { UpdateOpportunityDto } from "./dto/update-opportunity.dto";
+} from '@nestjs/common';
+import { OpportunityService } from './opportunity.service';
+import { CreateOpportunityDto } from './dto/create-opportunity.dto';
+import { UpdateOpportunityDto } from './dto/update-opportunity.dto';
 
-@Controller("opportunities")
+@Controller('opportunities')
 export class OpportunityController {
   constructor(private readonly opportunityService: OpportunityService) {}
 
   @Post()
   create(
     @Body() createOpportunityDto: CreateOpportunityDto,
-    @Query("userId") userId: string,
+    @Query('userId') userId: string,
     @Res() res: any
   ) {
     // Pass `res` separately
@@ -37,15 +37,15 @@ export class OpportunityController {
     return this.opportunityService.findAll(query, res);
   }
 
-  @Get(":id")
-  findOne(@Param("id") id: string, @Res() res: any) {
+  @Get(':id')
+  findOne(@Param('id') id: string, @Res() res: any) {
     return this.opportunityService.findOne(id, res);
   }
 
-  @Put(":id")
+  @Put(':id')
   update(
-    @Param("id") id: string,
-    @Query("userId") userId: string,
+    @Param('id') id: string,
+    @Query('userId') userId: string,
     @Body() updateOpportunityDto: UpdateOpportunityDto,
     @Res() res: any // Explicitly set Response type
   ) {
@@ -56,14 +56,14 @@ export class OpportunityController {
     return this.opportunityService.update(res, id, updateOpportunityDto);
   }
 
-  @Patch(":id/archive")
+  @Patch(':id/archive')
   async archive(
-    @Param("id") id: string,
-    @Query("userId") userId: string,
+    @Param('id') id: string,
+    @Query('userId') userId: string,
     @Res() res: any
   ) {
     if (!userId) {
-      throw new NotFoundException("UserId is required.");
+      throw new NotFoundException('UserId is required.');
     }
     return this.opportunityService.archive(id, userId, res);
   }

@@ -4,7 +4,7 @@ import {
   IsDecimal,
   IsNotEmpty,
   IsUUID,
-} from "class-validator";
+} from 'class-validator';
 
 export class CreateLocationDto {
   @IsNotEmpty()

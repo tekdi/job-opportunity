@@ -23,7 +23,7 @@ export class LocationsController {
   create(
     @Res() res: any,
     @Body() createLocationDto: CreateLocationDto,
-    @Query('userId') userId: string,
+    @Query('userId') userId: string
   ) {
     return this.locationsService.create(res, createLocationDto, userId);
   }
@@ -43,7 +43,7 @@ export class LocationsController {
     @Res() res: any,
     @Param('id') id: string,
     @Query('userId') userId: string,
-    @Body() updateLocationDto: UpdateLocationDto,
+    @Body() updateLocationDto: UpdateLocationDto
   ) {
     return this.locationsService.update(res, id, updateLocationDto, userId);
   }

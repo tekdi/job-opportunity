@@ -10,19 +10,19 @@ import {
   Patch,
   Res,
   HttpStatus,
-} from "@nestjs/common";
-import { SkillsService } from "./skills.service";
-import { CreateSkillDto } from "./dto/create-skill.dto";
-import { UpdateSkillDto } from "./dto/update-skill.dto";
+} from '@nestjs/common';
+import { SkillsService } from './skills.service';
+import { CreateSkillDto } from './dto/create-skill.dto';
+import { UpdateSkillDto } from './dto/update-skill.dto';
 
-@Controller("skills")
+@Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
   @Post()
   async create(
     @Body() createSkillDto: CreateSkillDto,
-    @Query("userId") userId: string,
+    @Query('userId') userId: string,
     @Res() res: any
   ) {
     return await this.skillsService.create(
@@ -36,15 +36,15 @@ export class SkillsController {
     return await this.skillsService.findAll(query, res);
   }
 
-  @Get(":id")
-  async findOne(@Param("id") id: string, @Res() res: any) {
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() res: any) {
     return await this.skillsService.findOne(id, res);
   }
 
-  @Patch(":id")
+  @Patch(':id')
   async update(
-    @Param("id") id: string,
-    @Query("userId") userId: string,
+    @Param('id') id: string,
+    @Query('userId') userId: string,
     @Body() updateSkillDto: UpdateSkillDto,
     @Res() res: any
   ) {
@@ -55,8 +55,8 @@ export class SkillsController {
     );
   }
 
-  @Delete(":id")
-  remove(@Param("id") id: string, @Res() res: any) {
+  @Delete(':id')
+  remove(@Param('id') id: string, @Res() res: any) {
     return this.skillsService.remove(id, res);
   }
 }

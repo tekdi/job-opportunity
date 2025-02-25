@@ -23,7 +23,7 @@ export class OrganizationsController {
   create(
     @Body() createOrganizationDto: CreateOrganizationDto,
     @Query('userId') userId: string,
-    @Res() res: any,
+    @Res() res: any
   ) {
     createOrganizationDto.created_by = userId;
     createOrganizationDto.updated_by = userId;
@@ -45,7 +45,7 @@ export class OrganizationsController {
     @Param('id') id: string,
     @Query('userId') userId: string,
     @Body() updateOrganizationDto: UpdateOrganizationDto,
-    @Res() res: any,
+    @Res() res: any
   ) {
     updateOrganizationDto.updated_by = userId;
     return this.organizationsService.update(id, updateOrganizationDto, res);

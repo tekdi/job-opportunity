@@ -10,7 +10,7 @@ import APIResponse from 'modules/common/responses/response';
 export class LocationsService {
   constructor(
     @InjectRepository(Location)
-    private readonly locationsRepository: Repository<Location>,
+    private readonly locationsRepository: Repository<Location>
   ) {}
 
   async create(res: any, createLocationDto: CreateLocationDto, userId: string) {
@@ -28,7 +28,7 @@ export class LocationsService {
         'Location created successfully',
         savedLocation,
         HttpStatus.OK,
-        'Location created successfully',
+        'Location created successfully'
       );
     } catch (error) {
       return APIResponse.error(
@@ -36,7 +36,7 @@ export class LocationsService {
         'Failed to create location',
         'ERROR_CREATE_LOCATION',
         'An error occurred while creating the location',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -80,7 +80,7 @@ export class LocationsService {
         if (validFields.includes(query.orderBy)) {
           qb.orderBy(
             `location.${query.orderBy}`,
-            query.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC',
+            query.order?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
           );
         }
       } else {
@@ -95,7 +95,7 @@ export class LocationsService {
         'Locations retrieved successfully',
         locations,
         HttpStatus.OK,
-        'Locations retrieved successfully',
+        'Locations retrieved successfully'
       );
     } catch (error) {
       return APIResponse.error(
@@ -103,7 +103,7 @@ export class LocationsService {
         'Failed to retrieve locations',
         'ERROR_FETCH_LOCATIONS',
         'An error occurred while fetching locations',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -120,7 +120,7 @@ export class LocationsService {
           `Location with ID ${id} not found`,
           'ERROR_LOCATION_NOT_FOUND',
           'No location found with the given ID',
-          HttpStatus.NOT_FOUND,
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -129,7 +129,7 @@ export class LocationsService {
         'Location retrieved successfully',
         location,
         HttpStatus.OK,
-        'Location retrieved successfully',
+        'Location retrieved successfully'
       );
     } catch (error) {
       return APIResponse.error(
@@ -137,7 +137,7 @@ export class LocationsService {
         'Failed to retrieve location',
         'ERROR_FETCH_LOCATION',
         'An error occurred while fetching the location',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -146,7 +146,7 @@ export class LocationsService {
     res: any,
     id: string,
     updateLocationDto: UpdateLocationDto,
-    userId: string,
+    userId: string
   ) {
     try {
       const location = await this.locationsRepository.findOne({
@@ -159,7 +159,7 @@ export class LocationsService {
           `Location with ID ${id} not found`,
           'ERROR_LOCATION_NOT_FOUND',
           'No location found with the given ID',
-          HttpStatus.NOT_FOUND,
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -189,7 +189,7 @@ export class LocationsService {
         'Location updated successfully',
         updatedLocation,
         HttpStatus.OK,
-        'Location updated successfully',
+        'Location updated successfully'
       );
     } catch (error) {
       return APIResponse.error(
@@ -197,7 +197,7 @@ export class LocationsService {
         'Failed to update location',
         'ERROR_UPDATE_LOCATION',
         'An error occurred while updating the location',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -212,7 +212,7 @@ export class LocationsService {
         'Location deleted successfully',
         { id },
         HttpStatus.OK,
-        'Location deleted successfully',
+        'Location deleted successfully'
       );
     } catch (error) {
       return APIResponse.error(
@@ -220,7 +220,7 @@ export class LocationsService {
         'Failed to delete location',
         'ERROR_DELETE_LOCATION',
         'An error occurred while deleting the location',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }

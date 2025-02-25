@@ -4,25 +4,25 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-@Entity("skills")
+@Entity('skills')
 export class Skill {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @Column({ type: "varchar", length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   name!: string;
 
-  @Column({ type: "uuid", nullable: false })
+  @Column({ type: 'uuid', nullable: false })
   created_by!: string;
 
-  @Column({ type: "uuid", nullable: false })
+  @Column({ type: 'uuid', nullable: false })
   updated_by!: string;
 
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;
 
-  @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at!: Date;
 }

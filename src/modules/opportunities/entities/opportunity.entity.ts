@@ -81,7 +81,7 @@ export class Opportunity {
 
   @OneToMany(
     () => OpportunityApplication,
-    (application) => application.opportunity,
+    (application) => application.opportunity
   )
   applications?: OpportunityApplication[];
 

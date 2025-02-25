@@ -1,21 +1,21 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
-import { Opportunity } from "../../opportunities/entities/opportunity.entity";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Opportunity } from '../../opportunities/entities/opportunity.entity';
 
-@Entity("benefits")
+@Entity('benefits')
 export class Benefit {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id?: string;
 
-  @Column({ type: "varchar", length: 255, nullable: false })
+  @Column({ type: 'varchar', length: 255, nullable: false })
   name?: string;
 
-  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at?: Date;
 
   @Column({
-    type: "timestamp",
-    default: () => "CURRENT_TIMESTAMP",
-    onUpdate: "CURRENT_TIMESTAMP",
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at?: Date;
 

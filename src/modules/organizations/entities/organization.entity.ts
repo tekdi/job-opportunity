@@ -4,35 +4,35 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-} from "typeorm";
+} from 'typeorm';
 
-@Entity("organizations")
+@Entity('organizations')
 export class Organization {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ unique: true })
   name!: string;
 
-  @Column({ type: "text", nullable: true })
+  @Column({ type: 'text', nullable: true })
   description!: string;
 
   @Column({ nullable: true })
   website!: string;
 
-  @Column({ type: "uuid", nullable: false })
+  @Column({ type: 'uuid', nullable: false })
   created_by!: string;
 
-  @Column({ type: "uuid", nullable: false })
+  @Column({ type: 'uuid', nullable: false })
   updated_by!: string;
 
-  @CreateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   created_at!: Date;
 
   @UpdateDateColumn({
-    type: "timestamp",
-    default: () => "CURRENT_TIMESTAMP",
-    onUpdate: "CURRENT_TIMESTAMP",
+    type: 'timestamp',
+    default: () => 'CURRENT_TIMESTAMP',
+    onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
 }

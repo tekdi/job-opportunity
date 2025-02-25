@@ -5,9 +5,9 @@ import { OpportunityApplicationService } from './opportunity_applications.servic
 import { OpportunityApplicationController } from './opportunity_applications.controller';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([OpportunityApplication])],
-    controllers: [OpportunityApplicationController],
-    providers: [OpportunityApplicationService],
-    exports: [OpportunityApplicationService],
+  imports: [TypeOrmModule.forFeature([OpportunityApplication])],
+  controllers: [OpportunityApplicationController],
+  providers: [OpportunityApplicationService],
+  exports: [OpportunityApplicationService],
 })
 export class OpportunityApplicationModule {}
