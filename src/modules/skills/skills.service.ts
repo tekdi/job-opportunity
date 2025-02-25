@@ -1,16 +1,16 @@
-import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Skill } from './entities/skill.entity';
-import { CreateSkillDto } from './dto/create-skill.dto';
-import { UpdateSkillDto } from './dto/update-skill.dto';
-import APIResponse from 'modules/common/responses/response';
+import { Injectable, NotFoundException, HttpStatus } from "@nestjs/common";
+import { InjectRepository } from "@nestjs/typeorm";
+import { Repository } from "typeorm";
+import { Skill } from "./entities/skill.entity";
+import { CreateSkillDto } from "./dto/create-skill.dto";
+import { UpdateSkillDto } from "./dto/update-skill.dto";
+import APIResponse from "modules/common/responses/response";
 
 @Injectable()
 export class SkillsService {
   constructor(
     @InjectRepository(Skill)
-    private readonly skillRepository: Repository<Skill>,
+    private readonly skillRepository: Repository<Skill>
   ) {}
 
   async create(createSkillDto: CreateSkillDto, res: any): Promise<any> {
@@ -20,18 +20,18 @@ export class SkillsService {
 
       return APIResponse.success(
         res,
-        'Skill created successfully',
+        "Skill created successfully",
         savedSkill,
         HttpStatus.CREATED,
-        'Skill created successfully',
+        "Skill created successfully"
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        'Failed to create skill',
-        'ERROR_CREATE_SKILL',
-        'Error Creating Skill',
-        HttpStatus.BAD_REQUEST,
+        "Failed to create skill",
+        "ERROR_CREATE_SKILL",
+        "Error Creating Skill",
+        HttpStatus.BAD_REQUEST
       );
     }
   }
@@ -41,17 +41,17 @@ export class SkillsService {
       const page = query.page ? parseInt(query.page, 10) : 1;
       const limit = query.limit ? parseInt(query.limit, 10) : 10;
 
-      const qb = this.skillRepository.createQueryBuilder('skill');
+      const qb = this.skillRepository.createQueryBuilder("skill");
 
       if (query.name) {
-        qb.andWhere('skill.name ILIKE :name', { name: `%${query.name}%` });
+        qb.andWhere("skill.name ILIKE :name", { name: `%${query.name}%` });
       }
 
       if (query.orderBy) {
-        const order = query.order === 'DESC' ? 'DESC' : 'ASC';
+        const order = query.order === "DESC" ? "DESC" : "ASC";
         qb.orderBy(`skill.${query.orderBy}`, order);
       } else {
-        qb.orderBy('skill.created_at', 'DESC');
+        qb.orderBy("skill.created_at", "DESC");
       }
 
       qb.skip((page - 1) * limit).take(limit);
@@ -59,18 +59,18 @@ export class SkillsService {
 
       return APIResponse.success(
         res,
-        'Skills retrieved successfully',
+        "Skills retrieved successfully",
         skills,
         HttpStatus.OK,
-        'Skills retrieved successfully',
+        "Skills retrieved successfully"
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        'Failed to fetch skills',
-        'ERROR_FETCH_SKILLS',
-        'Error Fetching Skills',
-        HttpStatus.BAD_REQUEST,
+        "Failed to fetch skills",
+        "ERROR_FETCH_SKILLS",
+        "Error Fetching Skills",
+        HttpStatus.BAD_REQUEST
       );
     }
   }
@@ -78,32 +78,31 @@ export class SkillsService {
   async findOne(id: string, res: any): Promise<any> {
     try {
       const skill = await this.skillRepository.findOne({ where: { id } });
-      console.log('sddd', skill);
 
       if (!skill) {
         return APIResponse.error(
           res,
           `Skill with ID ${id} not found`,
-          'ERROR_SKILL_NOT_FOUND',
-          'Skill not found',
-          HttpStatus.NOT_FOUND,
+          "ERROR_SKILL_NOT_FOUND",
+          "Skill not found",
+          HttpStatus.NOT_FOUND
         );
       }
 
       return APIResponse.success(
         res,
-        'Skill retrieved successfully',
+        "Skill retrieved successfully",
         skill,
         HttpStatus.OK,
-        'Skill retrieved successfully',
+        "Skill retrieved successfully"
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        'Failed to fetch skill',
-        'ERROR_FETCH_SKILL',
-        'Error Fetching Skill',
-        HttpStatus.NOT_FOUND,
+        "Failed to fetch skill",
+        "ERROR_FETCH_SKILL",
+        "Error Fetching Skill",
+        HttpStatus.NOT_FOUND
       );
     }
   }
@@ -111,23 +110,19 @@ export class SkillsService {
   async update(
     id: string,
     updateSkillDto: UpdateSkillDto,
-    res: any,
+    res: any
   ): Promise<any> {
     try {
-      console.log('Updating Skill ID:', id);
-
       // Fetch skill directly
       const skill = await this.skillRepository.findOne({ where: { id } });
-
-      console.log('Fetched Skill:', skill);
 
       if (!skill) {
         return APIResponse.error(
           res,
-          'Skill not found',
-          'ERROR_UPDATE_SKILL_NOT_FOUND',
-          'Error Updating Skill Not Found',
-          HttpStatus.NOT_FOUND,
+          "Skill not found",
+          "ERROR_UPDATE_SKILL_NOT_FOUND",
+          "Error Updating Skill Not Found",
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -137,65 +132,57 @@ export class SkillsService {
       // Save updates
       const updatedSkill = await this.skillRepository.save(skill);
 
-      console.log('Updated Skill:', updatedSkill);
-
       return APIResponse.success(
         res,
-        'Skill updated successfully',
+        "Skill updated successfully",
         updatedSkill,
         HttpStatus.OK,
-        'Skill updated successfully',
+        "Skill updated successfully"
       );
     } catch (error) {
-      console.error('Update Error:', error);
+      console.error("Update Error:", error);
       return APIResponse.error(
         res,
-        'Failed to update skill',
-        'ERROR_UPDATE_SKILL',
-        'Error Updating Skill',
-        HttpStatus.BAD_REQUEST,
+        "Failed to update skill",
+        "ERROR_UPDATE_SKILL",
+        "Error Updating Skill",
+        HttpStatus.BAD_REQUEST
       );
     }
   }
 
   async remove(id: string, res: any): Promise<any> {
     try {
-      console.log('Deleting Skill ID:', id);
-
       // Fetch skill directly instead of using findOne(id, res)
       const skill = await this.skillRepository.findOne({ where: { id } });
-
-      console.log('Fetched Skill:', skill);
 
       if (!skill) {
         return APIResponse.error(
           res,
-          'Skill not found',
-          'ERROR_SKILL_NOT_FOUND',
-          'Error Skill Not Found',
-          HttpStatus.NOT_FOUND,
+          "Skill not found",
+          "ERROR_SKILL_NOT_FOUND",
+          "Error Skill Not Found",
+          HttpStatus.NOT_FOUND
         );
       }
 
       // Delete the skill from the database
       await this.skillRepository.delete(id);
-      console.log('Skill Deleted Successfully:', id);
 
       return APIResponse.success(
         res,
-        'Skill deleted successfully',
+        "Skill deleted successfully",
         null,
         HttpStatus.OK,
-        'Skill deleted successfully',
+        "Skill deleted successfully"
       );
     } catch (error) {
-      console.error('Delete Error:', error);
       return APIResponse.error(
         res,
-        'Failed to delete skill',
-        'ERROR_DELETE_SKILL',
-        'Error Deleting Skill',
-        HttpStatus.BAD_REQUEST,
+        "Failed to delete skill",
+        "ERROR_DELETE_SKILL",
+        "Error Deleting Skill",
+        HttpStatus.BAD_REQUEST
       );
     }
   }

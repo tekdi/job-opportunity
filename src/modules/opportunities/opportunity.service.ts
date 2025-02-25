@@ -2,43 +2,43 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { EntityManager, ObjectType, FindOneOptions } from 'typeorm';
-import { Opportunity } from './entities/opportunity.entity';
-import { CreateOpportunityDto } from './dto/create-opportunity.dto';
-import { UpdateOpportunityDto } from './dto/update-opportunity.dto';
-import { Location } from '../locations/entities/location.entity';
-import { Organization } from '../organizations/entities/organization.entity';
-import { Category } from '../categories/entities/category.entity';
-import { Benefit } from 'modules/benefits/entities/benefits.entity';
-import { OpportunityResponseDto } from './dto/opportunity-response.dto';
-import { Skill } from '../skills/entities/skill.entity';
-import APIResponse from 'modules/common/responses/response';
-import { HttpStatus } from '@nestjs/common';
-import { Response } from 'express';
+} from "@nestjs/common";
+import { EntityManager, ObjectType, FindOneOptions } from "typeorm";
+import { Opportunity } from "./entities/opportunity.entity";
+import { CreateOpportunityDto } from "./dto/create-opportunity.dto";
+import { UpdateOpportunityDto } from "./dto/update-opportunity.dto";
+import { Location } from "../locations/entities/location.entity";
+import { Organization } from "../organizations/entities/organization.entity";
+import { Category } from "../categories/entities/category.entity";
+import { Benefit } from "modules/benefits/entities/benefits.entity";
+import { OpportunityResponseDto } from "./dto/opportunity-response.dto";
+import { Skill } from "../skills/entities/skill.entity";
+import APIResponse from "modules/common/responses/response";
+import { HttpStatus } from "@nestjs/common";
+import { Response } from "express";
 @Injectable()
 export class OpportunityService {
   constructor(private readonly entityManager: EntityManager) {}
 
   // Create an opportunity
   async create(
-    res: Response, // ✅ Pass res as first parameter
-    createOpportunityDto: CreateOpportunityDto,
+    res: Response, // Pass res as first parameter
+    createOpportunityDto: CreateOpportunityDto
   ): Promise<any> {
     try {
       if (!createOpportunityDto.title?.trim()) {
-        throw new BadRequestException('Title is required and cannot be empty.');
+        throw new BadRequestException("Title is required and cannot be empty.");
       }
 
       if (!createOpportunityDto.created_by) {
-        throw new BadRequestException('Created_by is required.');
+        throw new BadRequestException("Created_by is required.");
       }
 
       if (!createOpportunityDto.updated_by) {
-        throw new BadRequestException('Updated_by is required.');
+        throw new BadRequestException("Updated_by is required.");
       }
 
-      // ✅ Validate and fetch related entities
+      // Validate and fetch related entities
       const location = createOpportunityDto.location
         ? await this.entityManager.findOne(Location, {
             where: { id: createOpportunityDto.location },
@@ -63,20 +63,20 @@ export class OpportunityService {
           })
         : null;
 
-      // ✅ Throw error if any required entity is missing
+      // Throw error if any required entity is missing
       if (!location) {
         throw new BadRequestException(
-          `Location with ID ${createOpportunityDto.location} not found.`,
+          `Location with ID ${createOpportunityDto.location} not found.`
         );
       }
       if (!company) {
         throw new BadRequestException(
-          `Company with ID ${createOpportunityDto.company} not found.`,
+          `Company with ID ${createOpportunityDto.company} not found.`
         );
       }
       if (!category) {
         throw new BadRequestException(
-          `Category with ID ${createOpportunityDto.category} not found.`,
+          `Category with ID ${createOpportunityDto.category} not found.`
         );
       }
 
@@ -86,24 +86,24 @@ export class OpportunityService {
         createOpportunityDto.other_benefit
       ) {
         throw new BadRequestException(
-          "Other Benefit can only be provided if 'Other' is selected as a benefit.",
+          "Other Benefit can only be provided if 'Other' is selected as a benefit."
         );
       }
 
-      // ✅ Ensure skills is an array
+      // Ensure skills is an array
       const skills = Array.isArray(createOpportunityDto.skills)
         ? createOpportunityDto.skills
         : [];
 
-      // ✅ Create and map Opportunity object
+      // Create and map Opportunity object
       const opportunity = new Opportunity();
       opportunity.title = createOpportunityDto.title.trim();
-      opportunity.description = createOpportunityDto.description ?? '';
+      opportunity.description = createOpportunityDto.description ?? "";
       opportunity.is_remote = createOpportunityDto.is_remote ?? false;
       opportunity.opportunity_type =
-        createOpportunityDto.opportunity_type ?? 'Full-time';
+        createOpportunityDto.opportunity_type ?? "Full-time";
       opportunity.experience_level =
-        createOpportunityDto.experience_level ?? 'entry';
+        createOpportunityDto.experience_level ?? "entry";
       opportunity.min_experience = createOpportunityDto.min_experience ?? 0;
       opportunity.min_salary = createOpportunityDto.min_salary ?? 0;
       opportunity.max_salary = createOpportunityDto.max_salary ?? 0;
@@ -114,34 +114,34 @@ export class OpportunityService {
       opportunity.updated_by = createOpportunityDto.updated_by.trim();
       opportunity.benefit = benefit ?? undefined;
       opportunity.other_benefit =
-        benefit && benefit.name === 'Other'
+        benefit && benefit.name === "Other"
           ? createOpportunityDto.other_benefit ?? undefined
           : undefined;
 
-      // ✅ Assign relationships properly
+      // Assign relationships properly
       opportunity.location = location;
       opportunity.company = company;
       opportunity.category = category;
 
-      // ✅ Save the opportunity in the database
+      // Save the opportunity in the database
       await this.entityManager.save(Opportunity, opportunity);
 
-      // ✅ Return APIResponse.success with correct structure
+      // Return APIResponse.success with correct structure
       return APIResponse.success(
         res,
-        'CREATE_OPPORTUNITY', // API ID (replace if needed)
+        "CREATE_OPPORTUNITY", // API ID (replace if needed)
         { data: opportunity, total: 1 },
         HttpStatus.OK,
-        'Opportunity successfully created',
+        "Opportunity successfully created"
       );
     } catch (error) {
-      // ✅ Return APIResponse.error in case of failure
+      // Return APIResponse.error in case of failure
       return APIResponse.error(
         res,
-        'CREATE_OPPORTUNITY', // API ID (replace if needed)
-        'CREATE_OPPORTUNITY_ERROR',
-        'No opportunities Created',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        "CREATE_OPPORTUNITY", // API ID (replace if needed)
+        "CREATE_OPPORTUNITY_ERROR",
+        "No opportunities Created",
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -150,7 +150,7 @@ export class OpportunityService {
   async update(
     res: Response, // Added res parameter
     id: string,
-    updateOpportunityDto: UpdateOpportunityDto,
+    updateOpportunityDto: UpdateOpportunityDto
   ): Promise<any> {
     try {
       const opportunity = await this.entityManager.findOne(Opportunity, {
@@ -164,7 +164,7 @@ export class OpportunityService {
       // Utility function to fetch and validate related entities
       const validateAndFetch = async <T>(
         entityClass: ObjectType<T>,
-        entityId?: string,
+        entityId?: string
       ): Promise<T | null> => {
         if (!entityId) return null;
 
@@ -174,7 +174,7 @@ export class OpportunityService {
 
         if (!entity) {
           throw new BadRequestException(
-            `${(entityClass as any).name} with ID ${entityId} not found`,
+            `${(entityClass as any).name} with ID ${entityId} not found`
           );
         }
 
@@ -212,12 +212,12 @@ export class OpportunityService {
 
       // Validate rejection reason
       if (
-        updateOpportunityDto.status === 'rejected' &&
+        updateOpportunityDto.status === "rejected" &&
         (!updateOpportunityDto.rejection_reason ||
-          updateOpportunityDto.rejection_reason.trim() === '')
+          updateOpportunityDto.rejection_reason.trim() === "")
       ) {
         throw new BadRequestException(
-          "Rejection reason is required when setting status to 'rejected'.",
+          "Rejection reason is required when setting status to 'rejected'."
         );
       }
 
@@ -255,7 +255,7 @@ export class OpportunityService {
         }),
         ...(updateOpportunityDto.rejection_reason !== undefined && {
           rejection_reason:
-            updateOpportunityDto.status === 'rejected'
+            updateOpportunityDto.status === "rejected"
               ? updateOpportunityDto.rejection_reason
               : null, // Reset if not rejected
         }),
@@ -265,7 +265,7 @@ export class OpportunityService {
         ...(updateOpportunityDto.skills !== undefined && { skills }),
         benefit: benefit ?? undefined,
         other_benefit:
-          benefit && benefit.name === 'Other'
+          benefit && benefit.name === "Other"
             ? updateOpportunityDto.other_benefit ?? undefined
             : undefined,
       });
@@ -278,27 +278,27 @@ export class OpportunityService {
       // Save the updated opportunity
       const updatedOpportunity = await this.entityManager.save(
         Opportunity,
-        opportunity,
+        opportunity
       );
 
       // Return success response using APIResponse
       return APIResponse.success(
         res,
-        'UPDATE_OPPORTUNITY', // Replace with actual API ID if available
+        "UPDATE_OPPORTUNITY", // Replace with actual API ID if available
         { data: updatedOpportunity, total: 1 },
         HttpStatus.OK,
-        'Opportunity updated successfully',
+        "Opportunity updated successfully"
       );
     } catch (error) {
-      console.error('Error updating opportunity:', error);
+      console.error("Error updating opportunity:", error);
 
       // Return error response
       return APIResponse.error(
         res,
-        'update',
-        'NOT_FOUND',
-        'No opportunities found',
-        HttpStatus.NOT_FOUND,
+        "update",
+        "NOT_FOUND",
+        "No opportunities found",
+        HttpStatus.NOT_FOUND
       );
     }
   }
@@ -310,37 +310,37 @@ export class OpportunityService {
       const limit = query.limit ? parseInt(query.limit, 10) : 10;
 
       const qb = this.entityManager
-        .createQueryBuilder(Opportunity, 'opportunity')
-        .leftJoinAndSelect('opportunity.location', 'location')
-        .leftJoinAndSelect('opportunity.company', 'company')
-        .leftJoinAndSelect('opportunity.category', 'category')
-        .where('opportunity.status != :status', { status: 'archived' });
+        .createQueryBuilder(Opportunity, "opportunity")
+        .leftJoinAndSelect("opportunity.location", "location")
+        .leftJoinAndSelect("opportunity.company", "company")
+        .leftJoinAndSelect("opportunity.category", "category")
+        .where("opportunity.status != :status", { status: "archived" });
 
       let skillRecords: Skill[] = [];
 
       if (query.skill_name) {
         const skillNames = query.skill_name
-          .split(',')
+          .split(",")
           .map((s: string) => s.trim());
         skillRecords = await this.entityManager
-          .createQueryBuilder(Skill, 'skill')
-          .where('skill.name IN (:...skillNames)', { skillNames })
-          .select(['skill.id', 'skill.name'])
+          .createQueryBuilder(Skill, "skill")
+          .where("skill.name IN (:...skillNames)", { skillNames })
+          .select(["skill.id", "skill.name"])
           .getMany();
 
         const skillIdArray = skillRecords.map((s: Skill) => s.id);
 
         if (skillIdArray.length > 0) {
-          qb.andWhere('opportunity.skills::jsonb @> :skillIds::jsonb', {
+          qb.andWhere("opportunity.skills::jsonb @> :skillIds::jsonb", {
             skillIds: JSON.stringify(skillIdArray),
           });
         } else {
           return APIResponse.error(
             res,
             query.apiId,
-            'NOT_FOUND',
-            'No opportunitiessss found',
-            HttpStatus.NOT_FOUND,
+            "NOT_FOUND",
+            "No opportunitiessss found",
+            HttpStatus.NOT_FOUND
           );
         }
       }
@@ -348,91 +348,91 @@ export class OpportunityService {
       if (query.location_name || query.state || query.country) {
         const locationQuery = this.entityManager.createQueryBuilder(
           Location,
-          'location',
+          "location"
         );
 
         if (query.city) {
           const locationNames = query.city
-            .split(',')
+            .split(",")
             .map((name: string) => name.trim());
-          locationQuery.andWhere('location.city IN (:...locationNames)', {
+          locationQuery.andWhere("location.city IN (:...locationNames)", {
             locationNames,
           });
         }
         if (query.state) {
           const stateNames = query.state
-            .split(',')
+            .split(",")
             .map((s: string) => s.trim());
-          locationQuery.andWhere('location.state IN (:...stateNames)', {
+          locationQuery.andWhere("location.state IN (:...stateNames)", {
             stateNames,
           });
         }
 
         if (query.country) {
           const countryNames = query.country
-            .split(',')
+            .split(",")
             .map((c: string) => c.trim());
-          locationQuery.andWhere('location.country IN (:...countryNames)', {
+          locationQuery.andWhere("location.country IN (:...countryNames)", {
             countryNames,
           });
         }
 
         const locationRecords = await locationQuery
           .select([
-            'location.id',
-            'location.city',
-            'location.state',
-            'location.country',
+            "location.id",
+            "location.city",
+            "location.state",
+            "location.country",
           ])
           .getMany();
 
         const locationIdArray = locationRecords.map((loc: Location) => loc.id);
 
         if (locationIdArray.length > 0) {
-          qb.andWhere('opportunity.location_id IN (:...locationIds)', {
+          qb.andWhere("opportunity.location_id IN (:...locationIds)", {
             locationIds: locationIdArray,
           });
         } else {
           return APIResponse.error(
             res,
             query.apiId,
-            'NOT_FOUND',
-            'No opportunities found',
-            HttpStatus.NOT_FOUND,
+            "NOT_FOUND",
+            "No opportunities found",
+            HttpStatus.NOT_FOUND
           );
         }
       }
 
       if (query.search) {
-        qb.andWhere('opportunity.title ILIKE :search', {
+        qb.andWhere("opportunity.title ILIKE :search", {
           search: `%${query.search}%`,
         });
       }
       if (query.is_remote !== undefined) {
-        qb.andWhere('opportunity.is_remote = :is_remote', {
+        qb.andWhere("opportunity.is_remote = :is_remote", {
           is_remote: query.is_remote,
         });
       }
       if (query.min_salary) {
-        qb.andWhere('opportunity.min_salary >= :min_salary', {
+        qb.andWhere("opportunity.min_salary >= :min_salary", {
           min_salary: query.min_salary,
         });
       }
       if (query.max_salary) {
-        qb.andWhere('opportunity.max_salary <= :max_salary', {
+        qb.andWhere("opportunity.max_salary <= :max_salary", {
           max_salary: query.max_salary,
         });
       }
       if (query.created_at) {
-        qb.andWhere('opportunity.created_at >= :created_at', {
+        qb.andWhere("opportunity.created_at >= :created_at", {
           created_at: query.created_at,
         });
       }
 
-      if (query.order || query.order === 'asc' || query.order === 'desc') {
-        qb.orderBy('opportunity.created_at', query.order.toUpperCase());
+      if (query.order || query.order === "asc" || query.order === "desc") {
+        qb.orderBy("opportunity.created_at", query.order.toUpperCase());
       } else {
-        qb.orderBy('opportunity.created_at', 'ASC');
+        qb.orderBy("opportunity.created_at", "ASC");
       }
 
       const total = await qb.getCount();
@@ -455,7 +455,7 @@ export class OpportunityService {
         response.push(
           Object.assign(new OpportunityResponseDto(), opportunity, {
             skillDetails,
-          }),
+          })
         );
       }
 
@@ -464,15 +464,15 @@ export class OpportunityService {
         query.apiId,
         { data: response, total },
         200,
-        'Opportunities retrieved successfully',
+        "Opportunities retrieved successfully"
       );
     } catch (error) {
       return APIResponse.error(
         res,
         query.apiId,
-        'Error fetching opportunities',
-        error instanceof Error ? error.message : 'Unknown error',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        "Error fetching opportunities",
+        error instanceof Error ? error.message : "Unknown error",
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -482,16 +482,16 @@ export class OpportunityService {
     try {
       const opportunity = await this.entityManager.findOne(Opportunity, {
         where: { id },
-        relations: ['location', 'company', 'category'], // Load related entities
+        relations: ["location", "company", "category"], // Load related entities
       });
 
       if (!opportunity) {
         return APIResponse.error(
           res,
-          'GET_OPPORTUNITY', // Replace with actual API ID if available
-          'OPPORTUNITY_NOT_FOUND',
+          "GET_OPPORTUNITY", // Replace with actual API ID if available
+          "OPPORTUNITY_NOT_FOUND",
           `Opportunity with ID ${id} not found`,
-          HttpStatus.NOT_FOUND,
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -499,26 +499,26 @@ export class OpportunityService {
       let skillDetails: { id: string; name: string }[] = [];
       if (opportunity.skills && opportunity.skills.length > 0) {
         skillDetails = await this.entityManager
-          .createQueryBuilder(Skill, 'skill')
-          .where('skill.id IN (:...ids)', { ids: opportunity.skills })
-          .select(['skill.id', 'skill.name'])
+          .createQueryBuilder(Skill, "skill")
+          .where("skill.id IN (:...ids)", { ids: opportunity.skills })
+          .select(["skill.id", "skill.name"])
           .getRawMany();
       }
 
       return APIResponse.success(
         res,
-        'GET_OPPORTUNITY', // Replace with actual API ID if available
+        "GET_OPPORTUNITY", // Replace with actual API ID if available
         { data: { ...opportunity, skillDetails }, total: 1 },
         HttpStatus.OK,
-        'Opportunity successfully retrieved',
+        "Opportunity successfully retrieved"
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        'GET_OPPORTUNITY', // Replace with actual API ID if available
-        'GET_OPPORTUNITY_ERROR',
-        'Error fetching opportunity',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        "GET_OPPORTUNITY", // Replace with actual API ID if available
+        "GET_OPPORTUNITY_ERROR",
+        "Error fetching opportunity",
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -530,31 +530,31 @@ export class OpportunityService {
       if (!userId) {
         return APIResponse.error(
           res,
-          'ARCHIVE_OPPORTUNITY',
-          'USER_ID_REQUIRED',
-          'UserId is required.',
-          HttpStatus.BAD_REQUEST,
+          "ARCHIVE_OPPORTUNITY",
+          "USER_ID_REQUIRED",
+          "UserId is required.",
+          HttpStatus.BAD_REQUEST
         );
       }
 
       // Fetch the opportunity
       const opportunity = await this.entityManager.findOne(Opportunity, {
         where: { id },
-        relations: ['location', 'company', 'category'],
+        relations: ["location", "company", "category"],
       });
 
       if (!opportunity) {
         return APIResponse.error(
           res,
-          'ARCHIVE_OPPORTUNITY',
-          'OPPORTUNITY_NOT_FOUND',
+          "ARCHIVE_OPPORTUNITY",
+          "OPPORTUNITY_NOT_FOUND",
           `Opportunity with ID ${id} not found.`,
-          HttpStatus.NOT_FOUND,
+          HttpStatus.NOT_FOUND
         );
       }
 
-      // ✅ Update status, updated_at, and updated_by
-      opportunity.status = 'archived';
+      // Update status, updated_at, and updated_by
+      opportunity.status = "archived";
       opportunity.updated_at = new Date();
       opportunity.updated_by = userId;
 
@@ -562,18 +562,18 @@ export class OpportunityService {
 
       return APIResponse.success(
         res,
-        'ARCHIVE_OPPORTUNITY',
+        "ARCHIVE_OPPORTUNITY",
         { message: `Opportunity ${id} archived successfully.` },
         HttpStatus.OK,
-        'Opportunity archived successfully',
+        "Opportunity archived successfully"
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        'ARCHIVE_OPPORTUNITY',
-        'ARCHIVE_OPPORTUNITY_ERROR',
-        'Error archiving opportunity',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        "ARCHIVE_OPPORTUNITY",
+        "ARCHIVE_OPPORTUNITY_ERROR",
+        "Error archiving opportunity",
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
