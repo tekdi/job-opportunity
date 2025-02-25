@@ -1,13 +1,21 @@
-import { IsString, IsOptional, IsDecimal } from "class-validator";
+import {
+  IsString,
+  IsOptional,
+  IsDecimal,
+  IsNotEmpty,
+  IsUUID,
+} from "class-validator";
 
 export class CreateLocationDto {
+  @IsNotEmpty()
   @IsString()
   city!: string;
 
+  @IsNotEmpty()
   @IsString()
-  @IsOptional()
   state?: string;
 
+  @IsNotEmpty()
   @IsString()
   country!: string;
 
@@ -18,4 +26,12 @@ export class CreateLocationDto {
   @IsDecimal()
   @IsOptional()
   longitude?: number;
+
+  @IsNotEmpty()
+  @IsUUID()
+  created_by!: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  updated_by!: string;
 }

@@ -1,4 +1,4 @@
-import { IsString, IsOptional } from "class-validator";
+import { IsString, IsOptional, IsNotEmpty, IsUUID } from "class-validator";
 
 export class CreateOrganizationDto {
   @IsString()
@@ -11,4 +11,12 @@ export class CreateOrganizationDto {
   @IsString()
   @IsOptional()
   website?: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  created_by!: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  updated_by!: string;
 }

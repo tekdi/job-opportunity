@@ -1,4 +1,11 @@
-import { PartialType } from '@nestjs/mapped-types';
-import { CreateSkillDto } from './create-skill.dto';
+import { IsOptional, IsUUID, IsString, IsNotEmpty } from "class-validator";
 
-export class UpdateSkillDto extends PartialType(CreateSkillDto) {}
+export class UpdateSkillDto {
+  @IsOptional()
+  @IsString()
+  name?: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  updated_by!: string;
+}

@@ -11,7 +11,9 @@ export const databaseConfig: TypeOrmModuleOptions = {
   username: process.env.DATABASE_USER || "opportunity_test",
   password: process.env.DATABASE_PASSWORD || "opportunity_test",
   database: process.env.DATABASE_NAME || "opportunities",
-  entities: [__dirname + "/../**/*.entity{.ts,.js}"],
-  synchronize: process.env.DB_SYNCHRONIZE === "true",
+  //entities: [__dirname + "/../**/*.entity{.ts,.js}"],
+  entities: ["dist/**/*.entity{.ts,.js}"],
+  synchronize: false,
   logging: process.env.DB_LOGGING === "true",
+  migrationsRun: true,
 };
