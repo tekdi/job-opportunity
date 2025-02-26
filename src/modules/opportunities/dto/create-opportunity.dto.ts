@@ -31,7 +31,7 @@ export class CreateOpportunityDto {
   opportunity_type: string = "full-time";
 
   @IsNotEmpty()
-  @IsEnum(["entry", "part-time", ""])
+  @IsEnum(["entry", "part-time"])
   experience_level: string = "entry";
 
   @IsOptional()
