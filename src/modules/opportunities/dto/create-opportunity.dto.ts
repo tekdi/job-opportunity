@@ -11,27 +11,28 @@ import {
   IsInt,
   Min,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateOpportunityDto {
   @IsNotEmpty()
   @IsString()
-  title: string = '';
+  title: string = "";
 
   @IsOptional()
   @IsString()
-  description?: string = '';
-
-  @IsBoolean()
-  is_remote: boolean = false;
+  description?: string = "";
 
   @IsNotEmpty()
-  @IsEnum(['full-time', 'mid', 'contract', 'internship'])
-  opportunity_type: string = 'full-time';
+  @IsEnum(["Remote", "On-site", "Hybrid", "Work from Office"])
+  work_nature: string = "Remote";
 
   @IsNotEmpty()
-  @IsEnum(['entry', 'part-time', ''])
-  experience_level: string = 'entry';
+  @IsEnum(["full-time", "mid", "contract", "internship"])
+  opportunity_type: string = "full-time";
+
+  @IsNotEmpty()
+  @IsEnum(["entry", "part-time"])
+  experience_level: string = "entry";
 
   @IsOptional()
   @IsNumber()
@@ -50,34 +51,34 @@ export class CreateOpportunityDto {
   no_of_candidates: number = 1;
 
   @IsNotEmpty()
-  @IsEnum(['open', 'closed', 'archived', 'pending', 'approved', 'rejected'])
-  status: string = 'pending';
+  @IsEnum(["open", "closed", "archived", "pending", "approved", "rejected"])
+  status: string = "pending";
 
   @IsOptional()
   @IsString()
   rejection_reason?: string;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   skills?: string[];
 
-  @ValidateIf((o) => o.created_by && o.created_by.trim() !== '')
+  @ValidateIf((o) => o.created_by && o.created_by.trim() !== "")
   @IsUUID()
   created_by?: string;
 
-  @ValidateIf((o) => o.updated_by && o.updated_by.trim() !== '')
+  @ValidateIf((o) => o.updated_by && o.updated_by.trim() !== "")
   @IsUUID()
   updated_by?: string;
 
-  @ValidateIf((o) => o.location && o.location.trim() !== '')
+  @ValidateIf((o) => o.location && o.location.trim() !== "")
   @IsUUID()
   location?: string;
 
-  @ValidateIf((o) => o.company && o.company.trim() !== '')
+  @ValidateIf((o) => o.company && o.company.trim() !== "")
   @IsUUID()
   company?: string;
 
-  @ValidateIf((o) => o.category && o.category.trim() !== '')
+  @ValidateIf((o) => o.category && o.category.trim() !== "")
   @IsUUID()
   category?: string;
 
