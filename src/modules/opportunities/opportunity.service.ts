@@ -5,7 +5,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { EntityManager, ObjectType, FindOneOptions } from 'typeorm';
-import { Opportunity } from './entities/opportunity.entity';
+import {
+  Opportunity,
+  OpportunityPricingType,
+} from './entities/opportunity.entity';
 import { CreateOpportunityDto } from './dto/create-opportunity.dto';
 import { UpdateOpportunityDto } from './dto/update-opportunity.dto';
 import { Location } from '../locations/entities/location.entity';
@@ -16,6 +19,7 @@ import { OpportunityResponseDto } from './dto/opportunity-response.dto';
 import { Skill } from '../skills/entities/skill.entity';
 import APIResponse from 'modules/common/responses/response';
 import { Response } from 'express';
+
 @Injectable()
 export class OpportunityService {
   constructor(private readonly entityManager: EntityManager) {}
@@ -117,6 +121,11 @@ export class OpportunityService {
         benefit && benefit.name === 'Other'
           ? createOpportunityDto.other_benefit ?? undefined
           : undefined;
+
+      opportunity.offer_letter_provided =
+        createOpportunityDto.offer_letter_provided ?? false; // Default false
+      opportunity.pricing_type =
+        createOpportunityDto.pricing_type ?? OpportunityPricingType.FREE; // Default free
 
       // Assign relationships properly
       opportunity.location = location;
@@ -268,6 +277,13 @@ export class OpportunityService {
           benefit && benefit.name === 'Other'
             ? updateOpportunityDto.other_benefit ?? undefined
             : undefined,
+
+        ...(updateOpportunityDto.offer_letter_provided !== undefined && {
+          offer_letter_provided: updateOpportunityDto.offer_letter_provided,
+        }),
+        ...(updateOpportunityDto.pricing_type !== undefined && {
+          pricing_type: updateOpportunityDto.pricing_type,
+        }),
       });
 
       // Assign validated entities
@@ -440,6 +456,26 @@ export class OpportunityService {
       if (query.status) {
         const statuses = query.status.split(',').map((s: string) => s.trim());
         qb.andWhere('opportunity.status IN (:...statuses)', { statuses });
+      }
+
+      // Filter by `offer_letter_provided`
+      if (query.offer_letter_provided !== undefined) {
+        qb.andWhere(
+          'opportunity.offer_letter_provided = :offer_letter_provided',
+          {
+            offer_letter_provided: query.offer_letter_provided === 'true',
+          }
+        );
+      }
+
+      // Filter by `pricing_type`
+      if (query.pricing_type) {
+        const pricingTypes = query.pricing_type
+          .split(',')
+          .map((p: string) => p.trim());
+        qb.andWhere('opportunity.pricing_type IN (:...pricingTypes)', {
+          pricingTypes,
+        });
       }
 
       if (query.order || query.order === 'asc' || query.order === 'desc') {
