@@ -339,7 +339,7 @@ export class OpportunityService {
             res,
             query.apiId,
             'NOT_FOUND',
-            'No opportunitiessss found',
+            'No opportunities found',
             HttpStatus.NOT_FOUND
           );
         }
