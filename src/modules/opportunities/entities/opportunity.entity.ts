@@ -37,7 +37,7 @@ export class Opportunity {
   })
   opportunity_type: string = "full-time";
 
-  @Column({ type: "enum", enum: ["entry", "part-time", ""], default: "entry" })
+  @Column({ type: "enum", enum: ["entry", "part-time"], default: "entry" })
   experience_level: string = "entry";
 
   @Column({ type: "int", nullable: true })
