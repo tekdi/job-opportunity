@@ -424,9 +424,9 @@ export class OpportunityService {
           search: `%${query.search}%`,
         });
       }
-      if (query.is_remote !== undefined) {
-        qb.andWhere('opportunity.is_remote = :is_remote', {
-          is_remote: query.is_remote,
+      if (query.work_nature !== undefined) {
+        qb.andWhere('opportunity.work_nature = :work_nature', {
+          work_nature: query.work_nature,
         });
       }
       if (query.min_salary) {
