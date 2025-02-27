@@ -176,7 +176,6 @@ export class CategoriesService {
           'Error Deleting Category',
           HttpStatus.NOT_FOUND
         );
-        throw new NotFoundException(`Category with ID ${id} not found`);
       }
 
       await this.entityManager.delete(Category, id);
