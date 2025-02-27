@@ -15,7 +15,16 @@ import { OpportunityApplicationService } from './opportunity_applications.servic
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
 import { UpdateOpportunityApplicationDto } from './dto/update-opportunity-application.dto';
 import APIResponse from 'modules/common/responses/response';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiQuery,
+  ApiBody,
+} from '@nestjs/swagger';
 
+@ApiTags('Opportunity Applications')
 @Controller('opportunity-applications')
 export class OpportunityApplicationController {
   constructor(
@@ -23,6 +32,21 @@ export class OpportunityApplicationController {
   ) {}
 
   @Post()
+  @ApiOperation({ summary: 'Create a new opportunity application' })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Opportunity application created successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+  })
+  @ApiBody({ type: CreateOpportunityApplicationDto })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'ID of the user creating the application',
+  })
   create(
     @Body() createOpportunityApplicationDto: CreateOpportunityApplicationDto,
     @Query('userId') userId: string,
@@ -50,16 +74,59 @@ export class OpportunityApplicationController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Get all opportunity applications' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of opportunity applications retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid query parameters',
+  })
   findAll(@Query() query: any, @Res() res: any) {
     return this.opportunityApplicationService.findAll(query, res);
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Get an opportunity application by ID' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Opportunity application retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Opportunity application not found',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID of the opportunity application',
+  })
   findOne(@Param('id') id: string, @Res() res: any) {
     return this.opportunityApplicationService.findOne(id, res);
   }
 
   @Put(':id')
+  @ApiOperation({ summary: 'Update an opportunity application' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Opportunity application updated successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid input data',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID of the opportunity application',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'ID of the user updating the application',
+  })
+  @ApiBody({ type: UpdateOpportunityApplicationDto })
   update(
     @Param('id') id: string,
     @Query('userId') userId: string,
@@ -87,6 +154,25 @@ export class OpportunityApplicationController {
   }
 
   @Patch(':id/archive')
+  @ApiOperation({ summary: 'Archive an opportunity application' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Opportunity application archived successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Opportunity application not found',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID of the opportunity application',
+  })
+  @ApiQuery({
+    name: 'userId',
+    required: true,
+    description: 'ID of the user archiving the application',
+  })
   async archive(
     @Param('id') id: string,
     @Query('userId') userId: string,
