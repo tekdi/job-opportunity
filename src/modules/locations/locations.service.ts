@@ -224,4 +224,70 @@ export class LocationsService {
       );
     }
   }
+
+  async findLocations(res: any, country?: string, state?: string) {
+    try {
+      if (!country && !state) {
+        // Fetch unique countries
+        const countries = await this.locationsRepository
+          .createQueryBuilder('location')
+          .select('DISTINCT location.country', 'country')
+          .orderBy('location.country', 'ASC')
+          .getRawMany();
+
+        return APIResponse.success(
+          res,
+          'Countries retrieved successfully',
+          countries,
+          HttpStatus.OK,
+          'List of available countries'
+        );
+      }
+
+      if (country && !state) {
+        // Fetch unique states for the given country
+        const states = await this.locationsRepository
+          .createQueryBuilder('location')
+          .select('DISTINCT location.state', 'state')
+          .where('LOWER(location.country) = LOWER(:country)', { country })
+          .orderBy('location.state', 'ASC')
+          .getRawMany();
+
+        return APIResponse.success(
+          res,
+          'States retrieved successfully',
+          states,
+          HttpStatus.OK,
+          `List of states for ${country}`
+        );
+      }
+
+      if (country && state) {
+        // Fetch unique cities for the given country & state
+        const cities = await this.locationsRepository
+          .createQueryBuilder('location')
+          .select('DISTINCT location.city', 'city')
+          .where('LOWER(location.country) = LOWER(:country)', { country })
+          .andWhere('LOWER(location.state) = LOWER(:state)', { state })
+          .orderBy('location.city', 'ASC')
+          .getRawMany();
+
+        return APIResponse.success(
+          res,
+          'Cities retrieved successfully',
+          cities,
+          HttpStatus.OK,
+          `List of cities for ${state}, ${country}`
+        );
+      }
+    } catch (error) {
+      return APIResponse.error(
+        res,
+        'Failed to retrieve locations',
+        'ERROR_FETCH_LOCATIONS',
+        'An error occurred while fetching data',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
 }
