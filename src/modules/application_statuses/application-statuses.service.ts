@@ -1,10 +1,10 @@
-import { Injectable, NotFoundException, HttpStatus } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { ApplicationStatus } from "./entities/application_status.entity";
-import { CreateApplicationStatusDto } from "./dto/create-application-status.dto";
-import { UpdateApplicationStatusDto } from "./dto/update-application-status.dto";
-import APIResponse from "modules/common/responses/response";
+import { Injectable, HttpStatus } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ApplicationStatus } from './entities/application_status.entity';
+import { CreateApplicationStatusDto } from './dto/create-application-status.dto';
+import { UpdateApplicationStatusDto } from './dto/update-application-status.dto';
+import APIResponse from 'modules/common/responses/response';
 
 @Injectable()
 export class ApplicationStatusesService {
@@ -21,17 +21,17 @@ export class ApplicationStatusesService {
       );
       return APIResponse.success(
         res,
-        "Application Status created successfully",
+        'Application Status created successfully',
         savedStatus,
         HttpStatus.OK,
-        "New Application Status Added"
+        'New Application Status Added'
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        "Failed to create Application Status",
-        "ERROR_CREATE_APPLICATION_STATUS",
-        "Error Creating Application Status",
+        'Failed to create Application Status',
+        'ERROR_CREATE_APPLICATION_STATUS',
+        'Error Creating Application Status',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -42,17 +42,17 @@ export class ApplicationStatusesService {
       const savedStatus = await this.applicationStatusRepository.find();
       return APIResponse.success(
         res,
-        "Application Status created successfully",
+        'Application Status created successfully',
         savedStatus,
         HttpStatus.OK,
-        "New Application Status Added"
+        'New Application Status Added'
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        "Failed to retrieve Application Statuses",
-        "ERROR_FETCH_APPLICATION_STATUSES",
-        "Error Fetching Application Statuses",
+        'Failed to retrieve Application Statuses',
+        'ERROR_FETCH_APPLICATION_STATUSES',
+        'Error Fetching Application Statuses',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
@@ -67,100 +67,98 @@ export class ApplicationStatusesService {
         return APIResponse.error(
           res,
           `Application status with ID ${id} not found`,
-          "ERROR_FETCH_APPLICATION_STATUS",
-          "Error Fetching Application Status",
+          'ERROR_FETCH_APPLICATION_STATUS',
+          'Error Fetching Application Status',
           HttpStatus.NOT_FOUND
         );
       }
 
       return APIResponse.success(
         res,
-        "Application Status created successfully",
+        'Application Status created successfully',
         status,
         HttpStatus.OK,
-        "New Application Status Added"
+        'New Application Status Added'
       );
     } catch (error) {
       return APIResponse.error(
         res,
         `Application status with ID ${id} not found`,
-        "ERROR_FETCH_APPLICATION_STATUS",
-        "Error Fetching Application Status",
+        'ERROR_FETCH_APPLICATION_STATUS',
+        'Error Fetching Application Status',
         HttpStatus.NOT_FOUND
       );
     }
   }
 
-  
   async update(
     id: string,
     updateDto: UpdateApplicationStatusDto,
     res: any
   ): Promise<any> {
     try {
-      const existingStatus = await this.findOne(id,res); // Check if exists
-  
+      const existingStatus = await this.findOne(id, res); // Check if exists
+
       if (!existingStatus) {
         return APIResponse.error(
           res,
           `Application status with ID ${id} not found`,
-          "ERROR_UPDATE_APPLICATION_STATUS",
-          "Error Updating Application Status",
+          'ERROR_UPDATE_APPLICATION_STATUS',
+          'Error Updating Application Status',
           HttpStatus.NOT_FOUND
         );
       }
-  
+
       await this.applicationStatusRepository.update(id, updateDto);
-      const updatedStatus = await this.findOne(id,res); // Fetch updated record
-  
+      const updatedStatus = await this.findOne(id, res); // Fetch updated record
+
       return APIResponse.success(
         res,
-        "Application Status updated successfully",
+        'Application Status updated successfully',
         updatedStatus,
         HttpStatus.OK,
-        "Application Status Updated"
+        'Application Status Updated'
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        "An error occurred while updating application status",
-        "ERROR_UPDATE_APPLICATION_STATUS",
-       "Error Updating Application Status",
+        'An error occurred while updating application status',
+        'ERROR_UPDATE_APPLICATION_STATUS',
+        'Error Updating Application Status',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
 
- 
   async remove(id: string, res: any): Promise<any> {
     try {
-      const existingStatus = await this.findOne(id,res); // Check if it exists
-  
+      const existingStatus = await this.findOne(id, res); // Check if it exists
+
       if (!existingStatus) {
         return APIResponse.error(
           res,
           `Application status with ID ${id} not found`,
-          "ERROR_DELETE_APPLICATION_STATUS",
-          "Error Deleting Application Status",
+          'ERROR_DELETE_APPLICATION_STATUS',
+          'Error Deleting Application Status',
           HttpStatus.NOT_FOUND
         );
       }
-  
+
       await this.applicationStatusRepository.delete(id);
-  
+
       return APIResponse.success(
         res,
-        "Application Status deleted successfully",
+        'Application Status deleted successfully',
         null,
         HttpStatus.OK,
-        "Application Status Deleted"
+        'Application Status Deleted'
       );
     } catch (error) {
       return APIResponse.error(
         res,
-        "An error occurred while deleting application status",
-        "ERROR_DELETE_APPLICATION_STATUS",
-        "Error Deleting Application Status",
+        'An error occurred while deleting application status',
+        'ERROR_DELETE_APPLICATION_STATUS',
+        'Error Deleting Application Status',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
