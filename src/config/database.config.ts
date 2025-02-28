@@ -7,7 +7,7 @@ export const databaseConfig: TypeOrmModuleOptions = {
   type: 'postgres',
   host: process.env.DB_HOST || 'localhost',
   // port: parseInt(process.env.DB_PORT, 10) || 5432,
-  port: 5432,
+  port: 5433,
   username: process.env.DATABASE_USER || 'opportunity_test',
   password: process.env.DATABASE_PASSWORD || 'opportunity_test',
   database: process.env.DATABASE_NAME || 'opportunities',

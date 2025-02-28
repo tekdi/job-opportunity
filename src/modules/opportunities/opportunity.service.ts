@@ -369,35 +369,38 @@ export class OpportunityService {
         .leftJoinAndSelect('opportunity.category', 'category')
         .where('opportunity.status != :status', { status: 'archived' });
 
+      // Skills Filter
       let skillRecords: Skill[] = [];
 
-      if (query.skill_name) {
-        const skillNames = query.skill_name
-          .split(',')
-          .map((s: string) => s.trim());
+      if (query.skills) {
+        const skillIds = query.skills.split(',').map((s: string) => s.trim());
+
         skillRecords = await this.entityManager
           .createQueryBuilder(Skill, 'skill')
-          .where('skill.name IN (:...skillNames)', { skillNames })
+          .where('skill.id IN (:...skillIds)', { skillIds })
           .select(['skill.id', 'skill.name'])
           .getMany();
 
-        const skillIdArray = skillRecords.map((s: Skill) => s.id);
-
-        if (skillIdArray.length > 0) {
-          qb.andWhere('opportunity.skills::jsonb @> :skillIds::jsonb', {
-            skillIds: JSON.stringify(skillIdArray),
-          });
+        if (skillRecords.length > 0) {
+          qb.andWhere(
+            `EXISTS (
+              SELECT 1 FROM jsonb_array_elements_text(opportunity.skills) skill_id
+              WHERE skill_id IN (:...skillIds)
+            )`,
+            { skillIds }
+          );
         } else {
           return APIResponse.error(
             res,
             query.apiId,
             'NOT_FOUND',
-            'No opportunities found',
+            'No opportunities found for given skills',
             HttpStatus.NOT_FOUND
           );
         }
       }
-      // 🔹 Location Name, State, and Country Filter
+
+      // Location Name, State, and Country Filter
       if (query.city || query.state || query.country) {
         const locationQuery = this.entityManager.createQueryBuilder(
           Location,
@@ -444,6 +447,35 @@ export class OpportunityService {
         if (locationIdArray.length > 0) {
           qb.andWhere('opportunity.location_id IN (:...locationIds)', {
             locationIds: locationIdArray,
+          });
+        } else {
+          return APIResponse.error(
+            res,
+            query.apiId,
+            'NOT_FOUND',
+            'No opportunities found',
+            HttpStatus.NOT_FOUND
+          );
+        }
+      }
+
+      // Category Filter
+      if (query.category) {
+        const categories = query.category
+          .split(',')
+          .map((name: string) => name.trim());
+
+        const categoryRecords = await this.entityManager
+          .createQueryBuilder(Category, 'category')
+          .where('category.id IN (:...categories)', { categories })
+          .select(['category.id', 'category.name'])
+          .getMany();
+
+        const categoryIdArray = categoryRecords.map((cat: Category) => cat.id);
+
+        if (categoryIdArray.length > 0) {
+          qb.andWhere('opportunity.category_id IN (:...categoryIds)', {
+            categoryIds: categoryIdArray,
           });
         } else {
           return APIResponse.error(
