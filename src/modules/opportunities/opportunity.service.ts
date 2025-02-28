@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
 import { EntityManager, ObjectType, FindOneOptions } from 'typeorm';
 import {
   Opportunity,
@@ -31,15 +26,33 @@ export class OpportunityService {
   ): Promise<any> {
     try {
       if (!createOpportunityDto.title?.trim()) {
-        throw new BadRequestException('Title is required and cannot be empty.');
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          'Title is required and cannot be empty.',
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       if (!createOpportunityDto.created_by) {
-        throw new BadRequestException('Created_by is required.');
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          'Created_by is required.',
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       if (!createOpportunityDto.updated_by) {
-        throw new BadRequestException('Updated_by is required.');
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          'Updated_by is required.',
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       // Validate and fetch related entities
@@ -69,18 +82,30 @@ export class OpportunityService {
 
       // Throw error if any required entity is missing
       if (!location) {
-        throw new BadRequestException(
-          `Location with ID ${createOpportunityDto.location} not found.`
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          `Location with ID ${createOpportunityDto.location} not found.`,
+          HttpStatus.BAD_REQUEST
         );
       }
       if (!company) {
-        throw new BadRequestException(
-          `Company with ID ${createOpportunityDto.company} not found.`
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          `Company with ID ${createOpportunityDto.company} not found.`,
+          HttpStatus.BAD_REQUEST
         );
       }
       if (!category) {
-        throw new BadRequestException(
-          `Category with ID ${createOpportunityDto.category} not found.`
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          `Category with ID ${createOpportunityDto.category} not found.`,
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -89,8 +114,12 @@ export class OpportunityService {
         !benefit &&
         createOpportunityDto.other_benefit
       ) {
-        throw new BadRequestException(
-          "Other Benefit can only be provided if 'Other' is selected as a benefit."
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY', // API ID (replace if needed)
+          'CREATE_OPPORTUNITY_ERROR',
+          'Other Benefit can only be provided if Other is selected as a benefit.',
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -167,7 +196,13 @@ export class OpportunityService {
       });
 
       if (!opportunity) {
-        throw new NotFoundException(`Opportunity with ID ${id} not found`);
+        return APIResponse.error(
+          res,
+          'UPDATE_OPPORTUNITY', // API ID (replace if needed)
+          'UPDATE_OPPORTUNITY_ERROR',
+          `Opportunity with ID ${id} not found`,
+          HttpStatus.BAD_REQUEST
+        );
       }
 
       // Utility function to fetch and validate related entities
@@ -225,8 +260,12 @@ export class OpportunityService {
         (!updateOpportunityDto.rejection_reason ||
           updateOpportunityDto.rejection_reason.trim() === '')
       ) {
-        throw new BadRequestException(
-          "Rejection reason is required when setting status to 'rejected'."
+        return APIResponse.error(
+          res,
+          'UPDATE_OPPORTUNITY', // API ID (replace if needed)
+          'UPDATE_OPPORTUNITY_ERROR',
+          'Rejection reason is required when setting status to rejected.',
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -306,8 +345,6 @@ export class OpportunityService {
         'Opportunity updated successfully'
       );
     } catch (error) {
-      console.error('Error updating opportunity:', error);
-
       // Return error response
       return APIResponse.error(
         res,
