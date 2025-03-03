@@ -562,6 +562,25 @@ export class OpportunityService {
       const response: OpportunityResponseDto[] = [];
 
       for (const opportunity of opportunities) {
+        const stats = await this.entityManager
+          .createQueryBuilder('opportunity_applications', 'app')
+          .select([
+            'COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId) AS mapped',
+            `COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId AND status.status = 'shortlisted') AS shortlisted`,
+            `COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId AND status.status = 'accepted') AS accepted`,
+            `COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId AND status.status = 'rejected') AS rejected`,
+            `COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId AND status.status = 'withdrawn') AS withdrawn`,
+            `COUNT(*) FILTER (WHERE app.opportunity_id = :opportunityId AND status.status = 'hired') AS hired`,
+          ])
+          .leftJoin(
+            'application_statuses',
+            'status',
+            'app.status_id = status.id'
+          )
+          .where('app.opportunity_id = :opportunityId', {
+            opportunityId: opportunity.id,
+          })
+          .getRawOne();
         let skillDetails: { id: string; name: string }[] = [];
 
         if (opportunity.skills && opportunity.skills.length > 0) {
@@ -573,6 +592,14 @@ export class OpportunityService {
         response.push(
           Object.assign(new OpportunityResponseDto(), opportunity, {
             skillDetails,
+            stats: {
+              mapped: Number(stats?.mapped) || 0,
+              shortlisted: Number(stats?.shortlisted) || 0,
+              accepted: Number(stats?.accepted) || 0,
+              rejected: Number(stats?.rejected) || 0,
+              withdrawn: Number(stats?.withdrawn) || 0,
+              hired: Number(stats?.hired) || 0,
+            },
           })
         );
       }
