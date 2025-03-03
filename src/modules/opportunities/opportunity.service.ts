@@ -561,7 +561,41 @@ export class OpportunityService {
 
       const response: OpportunityResponseDto[] = [];
 
+      const opportunityIds = opportunities.map((opp) => opp.id);
+
+      // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
+      const allStats = await this.entityManager
+        .createQueryBuilder('opportunity_applications', 'app')
+        .select([
+          'app.opportunity_id AS opportunity_id',
+          'COUNT(*) AS mapped',
+          `COUNT(*) FILTER (WHERE status.status = 'shortlisted') AS shortlisted`,
+          `COUNT(*) FILTER (WHERE status.status = 'accepted') AS accepted`,
+          `COUNT(*) FILTER (WHERE status.status = 'rejected') AS rejected`,
+          `COUNT(*) FILTER (WHERE status.status = 'withdrawn') AS withdrawn`,
+          `COUNT(*) FILTER (WHERE status.status = 'hired') AS hired`,
+        ])
+        .leftJoin('application_statuses', 'status', 'app.status_id = status.id')
+        .where('app.opportunity_id IN (:...opportunityIds)', {
+          opportunityIds,
+        })
+        .groupBy('app.opportunity_id')
+        .getRawMany();
+
+      // Create a map for easy lookup
+      const statsMap = new Map(
+        allStats.map((stat) => [stat.opportunity_id, stat])
+      );
       for (const opportunity of opportunities) {
+        // Map opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
+        const stats = statsMap.get(opportunity.id) || {
+          mapped: 0,
+          shortlisted: 0,
+          accepted: 0,
+          rejected: 0,
+          withdrawn: 0,
+          hired: 0,
+        };
         let skillDetails: { id: string; name: string }[] = [];
 
         if (opportunity.skills && opportunity.skills.length > 0) {
@@ -573,6 +607,14 @@ export class OpportunityService {
         response.push(
           Object.assign(new OpportunityResponseDto(), opportunity, {
             skillDetails,
+            stats: {
+              mapped: Number(stats?.mapped) || 0,
+              shortlisted: Number(stats?.shortlisted) || 0,
+              accepted: Number(stats?.accepted) || 0,
+              rejected: Number(stats?.rejected) || 0,
+              withdrawn: Number(stats?.withdrawn) || 0,
+              hired: Number(stats?.hired) || 0,
+            },
           })
         );
       }
