@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  HttpStatus,
-} from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { EntityManager, In } from 'typeorm';
 import { OpportunityApplication } from './entities/opportunity-application.entity';
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
@@ -13,7 +8,6 @@ import { ApplicationStatus } from '../application_statuses/entities/application_
 import { Skill } from '../skills/entities/skill.entity';
 import { Response } from 'express';
 import APIResponse from 'modules/common/responses/response';
-import { skip } from 'rxjs';
 
 @Injectable()
 export class OpportunityApplicationService {
@@ -24,6 +18,27 @@ export class OpportunityApplicationService {
     res: Response
   ): Promise<any> {
     try {
+      // ✅ Check if user is already mapped to this opportunity
+      const existingApplication = await this.entityManager.findOne(
+        OpportunityApplication,
+        {
+          where: {
+            user_id: createDto.user_id,
+            opportunity_id: createDto.opportunity_id,
+          },
+        }
+      );
+
+      if (existingApplication) {
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY_APPLICATION',
+          'USER_ALREADY_MAPPED',
+          'User is already mapped to this Opportunity',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
       // Validate Opportunity
       const opportunity = await this.entityManager.findOne(Opportunity, {
         where: { id: createDto.opportunity_id },
