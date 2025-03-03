@@ -303,6 +303,7 @@ export class OpportunityApplicationService {
         qb.orderBy('application.created_at', 'DESC');
       }
 
+      const total = await qb.getCount();
       qb.offset(offset).limit(limit);
       const applications = await qb.getRawMany();
 
@@ -333,7 +334,7 @@ export class OpportunityApplicationService {
       return APIResponse.success(
         res,
         'FIND_ALL_OPPORTUNITY_APPLICATIONS',
-        applications,
+        { data: applications, total },
         HttpStatus.OK,
         'Opportunity applications retrieved successfully'
       );
