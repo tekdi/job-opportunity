@@ -562,6 +562,7 @@ export class OpportunityService {
       const response: OpportunityResponseDto[] = [];
 
       for (const opportunity of opportunities) {
+        // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
         const stats = await this.entityManager
           .createQueryBuilder('opportunity_applications', 'app')
           .select([
