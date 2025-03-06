@@ -134,7 +134,7 @@ export class OpportunityService {
       opportunity.description = createOpportunityDto.description ?? '';
       opportunity.work_nature = createOpportunityDto.work_nature ?? false;
       opportunity.opportunity_type =
-        createOpportunityDto.opportunity_type ?? 'Full-time';
+        createOpportunityDto.opportunity_type ?? 'job';
       opportunity.experience_level =
         createOpportunityDto.experience_level ?? 'entry';
       opportunity.min_experience = createOpportunityDto.min_experience ?? 0;
@@ -518,6 +518,13 @@ export class OpportunityService {
       if (query.created_by) {
         qb.andWhere('opportunity.created_by = :created_by', {
           created_by: query.created_by,
+        });
+      }
+
+      // Add opportunity role (type) filter
+      if (query.opportunity_type) {
+        qb.andWhere('opportunity.opportunity_type = :opportunity_type', {
+          opportunity_type: query.opportunity_type,
         });
       }
 
