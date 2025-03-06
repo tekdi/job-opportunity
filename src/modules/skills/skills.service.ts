@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
@@ -13,8 +13,26 @@ export class SkillsService {
     private readonly skillRepository: Repository<Skill>
   ) {}
 
+  // Create new skill
   async create(createSkillDto: CreateSkillDto, res: any): Promise<any> {
     try {
+      // Check if a skill with the same name (case-insensitive) already exists
+      const existingSkill = await this.skillRepository.findOne({
+        where: {
+          name: ILike(createSkillDto.name.trim()),
+        },
+      });
+
+      if (existingSkill) {
+        return APIResponse.error(
+          res,
+          'Skill name already exists',
+          'ERROR_CREATE_SKILL_DUPLICATE',
+          'Skill with the same name already exists',
+          HttpStatus.CONFLICT
+        );
+      }
+
       const skill = this.skillRepository.create(createSkillDto);
       const savedSkill = await this.skillRepository.save(skill);
 
@@ -36,6 +54,7 @@ export class SkillsService {
     }
   }
 
+  // Fetch all skills
   async findAll(query: any, res: any): Promise<any> {
     try {
       const page = query.page ? parseInt(query.page, 10) : 1;
@@ -75,6 +94,7 @@ export class SkillsService {
     }
   }
 
+  // Get skill details
   async findOne(id: string, res: any): Promise<any> {
     try {
       const skill = await this.skillRepository.findOne({ where: { id } });
@@ -107,6 +127,7 @@ export class SkillsService {
     }
   }
 
+  // Update skill
   async update(
     id: string,
     updateSkillDto: UpdateSkillDto,
@@ -124,6 +145,26 @@ export class SkillsService {
           'Error Updating Skill Not Found',
           HttpStatus.NOT_FOUND
         );
+      }
+
+      // Check if a different skill with the same name (case-insensitive) already exists
+      if (updateSkillDto.name) {
+        const existingSkill = await this.skillRepository.findOne({
+          where: {
+            name: ILike(updateSkillDto.name.trim()),
+            id: Not(id), // Ensure it's not the same skill being updated
+          },
+        });
+
+        if (existingSkill) {
+          return APIResponse.error(
+            res,
+            'Skill name already exists',
+            'ERROR_UPDATE_SKILL_DUPLICATE',
+            'Skill with the same name already exists',
+            HttpStatus.CONFLICT
+          );
+        }
       }
 
       // Ensure ID is retained to prevent creating a new entry
@@ -151,6 +192,7 @@ export class SkillsService {
     }
   }
 
+  // Delete skill
   async remove(id: string, res: any): Promise<any> {
     try {
       // Fetch skill directly instead of using findOne(id, res)

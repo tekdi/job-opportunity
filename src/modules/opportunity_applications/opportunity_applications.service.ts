@@ -18,7 +18,7 @@ export class OpportunityApplicationService {
     res: Response
   ): Promise<any> {
     try {
-      // ✅ Check if user is already mapped to this opportunity
+      // Check if user is already mapped to this opportunity
       const existingApplication = await this.entityManager.findOne(
         OpportunityApplication,
         {
@@ -124,6 +124,7 @@ export class OpportunityApplicationService {
     }
   }
 
+  // Get the application details
   async findOne(id: string, res: Response): Promise<any> {
     try {
       const opportunityApplication = await this.entityManager.findOne(
@@ -199,6 +200,7 @@ export class OpportunityApplicationService {
     }
   }
 
+  // Fetch the application list
   async findAll(query: any, res: Response): Promise<any> {
     try {
       const page =
@@ -212,7 +214,7 @@ export class OpportunityApplicationService {
       limit = Math.min(limit, 100); // Prevent too large limits
       const offset = (page - 1) * limit;
 
-      // 🔹 Get the "archived" status UUID dynamically
+      // Get the "archived" status UUID dynamically
       const archivedStatus = await this.entityManager.findOne(
         ApplicationStatus,
         {
@@ -234,6 +236,9 @@ export class OpportunityApplicationService {
         .createQueryBuilder(OpportunityApplication, 'application')
         .leftJoinAndSelect('application.opportunity', 'opportunity')
         .leftJoinAndSelect('application.status', 'status')
+        .leftJoinAndSelect('opportunity.location', 'location')
+        .leftJoinAndSelect('opportunity.company', 'company')
+        .leftJoinAndSelect('opportunity.category', 'category')
         .select([
           'application.id AS application_id',
           'application.opportunity_id AS application_opportunity_id',
@@ -247,10 +252,32 @@ export class OpportunityApplicationService {
           'application.applied_skills AS application_applied_skills',
           'application.created_at AS application_created_at',
           'application.updated_at AS application_updated_at',
-          'opportunity.id AS opportunity_id',
-          'opportunity.title AS opportunity_title',
           'status.id AS status_id',
           'status.status AS status_name',
+          // Fetch opportunity details
+          'opportunity.id AS opportunity_id',
+          'opportunity.title AS opportunity_title',
+          'opportunity.description AS opportunity_description',
+          'opportunity.work_nature AS opportunity_work_nature',
+          'opportunity.opportunity_type AS opportunity_opportunity_type',
+          'opportunity.experience_level AS opportunity_experience_level',
+          'opportunity.min_experience AS opportunity_min_experience',
+          'opportunity.min_salary AS opportunity_min_salary',
+          'opportunity.max_salary AS opportunity_max_salary',
+          'opportunity.status AS opportunity_status',
+          'opportunity.created_by AS opportunity_created_by',
+          'opportunity.updated_by AS opportunity_updated_by',
+          // Fetch location details
+          'location.id AS location_id',
+          'location.city AS location_city',
+          'location.state AS location_state',
+          'location.country AS location_country',
+          // Fetch category details
+          'category.id AS category_id',
+          'category.name AS category_name',
+          // Fetch company details
+          'company.id AS company_id',
+          'company.name AS company_name',
         ])
         .where('application.status_id != :archivedStatusId', {
           archivedStatusId: archivedStatus.id,
@@ -453,7 +480,7 @@ export class OpportunityApplicationService {
 
       return APIResponse.success(
         res, // Pass response object
-        'OpportunityApplication updated successfully',
+        'Opportunity Application updated successfully',
         updatedApplication,
         HttpStatus.OK,
         'Opportunity application update successful'
