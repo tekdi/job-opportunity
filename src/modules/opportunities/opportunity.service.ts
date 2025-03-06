@@ -521,6 +521,13 @@ export class OpportunityService {
         });
       }
 
+      // Add opportunity role (type) filter
+      if (query.opportunity_type) {
+        qb.andWhere('opportunity.opportunity_type = :opportunity_type', {
+          opportunity_type: query.opportunity_type,
+        });
+      }
+
       // Add status filter
       if (query.status) {
         const statuses = query.status.split(',').map((s: string) => s.trim());
