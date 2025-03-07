@@ -576,7 +576,7 @@ export class OpportunityService {
           query.apiId,
           'Error fetching opportunities',
           'No Opportunities found',
-          HttpStatus.INTERNAL_SERVER_ERROR
+          HttpStatus.NOT_FOUND
         ); // Return an empty array if there are no opportunity IDs
       }
       // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
