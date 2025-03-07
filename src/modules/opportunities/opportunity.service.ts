@@ -585,12 +585,11 @@ export class OpportunityService {
         .select([
           'app.opportunity_id AS opportunity_id',
           'COUNT(*) AS mapped',
-          "COUNT(*) FILTER (WHERE status.status = 'shortlisted') AS shortlisted",
-          "COUNT(*) FILTER (WHERE status.status = 'accepted') AS accepted",
-          "COUNT(*) FILTER (WHERE status.status = 'rejected') AS rejected",
-          "COUNT(*) FILTER (WHERE status.status = 'withdrawn') AS withdrawn",
-          "COUNT(*) FILTER (WHERE status.status = 'hired') AS hired",
-          "COUNT(*) FILTER (WHERE status.status = 'pending') AS pending",
+          `COUNT(*) FILTER (WHERE status.status = 'shortlisted') AS shortlisted`,
+          `COUNT(*) FILTER (WHERE status.status = 'accepted') AS accepted`,
+          `COUNT(*) FILTER (WHERE status.status = 'rejected') AS rejected`,
+          `COUNT(*) FILTER (WHERE status.status = 'withdrawn') AS withdrawn`,
+          `COUNT(*) FILTER (WHERE status.status = 'hired') AS hired`,
         ])
         .leftJoin('application_statuses', 'status', 'app.status_id = status.id')
         .where('app.opportunity_id IN (:...opportunityIds)', {
