@@ -570,17 +570,27 @@ export class OpportunityService {
 
       const opportunityIds = opportunities.map((opp) => opp.id);
 
+      if (!opportunityIds || opportunityIds.length === 0) {
+        return APIResponse.error(
+          res,
+          query.apiId,
+          'Error fetching opportunities',
+          'No Opportunities found',
+          HttpStatus.INTERNAL_SERVER_ERROR
+        ); // Return an empty array if there are no opportunity IDs
+      }
       // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
       const allStats = await this.entityManager
         .createQueryBuilder('opportunity_applications', 'app')
         .select([
           'app.opportunity_id AS opportunity_id',
           'COUNT(*) AS mapped',
-          `COUNT(*) FILTER (WHERE status.status = 'shortlisted') AS shortlisted`,
-          `COUNT(*) FILTER (WHERE status.status = 'accepted') AS accepted`,
-          `COUNT(*) FILTER (WHERE status.status = 'rejected') AS rejected`,
-          `COUNT(*) FILTER (WHERE status.status = 'withdrawn') AS withdrawn`,
-          `COUNT(*) FILTER (WHERE status.status = 'hired') AS hired`,
+          "COUNT(*) FILTER (WHERE status.status = 'shortlisted') AS shortlisted",
+          "COUNT(*) FILTER (WHERE status.status = 'accepted') AS accepted",
+          "COUNT(*) FILTER (WHERE status.status = 'rejected') AS rejected",
+          "COUNT(*) FILTER (WHERE status.status = 'withdrawn') AS withdrawn",
+          "COUNT(*) FILTER (WHERE status.status = 'hired') AS hired",
+          "COUNT(*) FILTER (WHERE status.status = 'pending') AS pending",
         ])
         .leftJoin('application_statuses', 'status', 'app.status_id = status.id')
         .where('app.opportunity_id IN (:...opportunityIds)', {
