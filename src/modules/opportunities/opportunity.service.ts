@@ -570,6 +570,15 @@ export class OpportunityService {
 
       const opportunityIds = opportunities.map((opp) => opp.id);
 
+      if (!opportunityIds || opportunityIds.length === 0) {
+        return APIResponse.error(
+          res,
+          query.apiId,
+          'Error fetching opportunities',
+          'No Opportunities found',
+          HttpStatus.NOT_FOUND
+        ); // Return an empty array if there are no opportunity IDs
+      }
       // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
       const allStats = await this.entityManager
         .createQueryBuilder('opportunity_applications', 'app')
