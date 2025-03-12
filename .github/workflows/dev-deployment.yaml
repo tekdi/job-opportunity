@@ -2,7 +2,7 @@ name: Dev-Deployment Pratham-OU Mumbai Region
 on:
   push:
     branches:
-      - main
+      - east-africa-ym
 jobs:
   DEV-DEPLOYMENT:
     runs-on: ubuntu-latest
