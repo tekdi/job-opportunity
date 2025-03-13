@@ -186,7 +186,7 @@ export class OpportunityService {
 
   // Update an opportunity
   async update(
-    res: Response, // Added res parameter
+    res: Response,
     id: string,
     updateOpportunityDto: UpdateOpportunityDto
   ): Promise<any> {
@@ -198,63 +198,46 @@ export class OpportunityService {
       if (!opportunity) {
         return APIResponse.error(
           res,
-          'UPDATE_OPPORTUNITY', // API ID (replace if needed)
+          'UPDATE_OPPORTUNITY',
           'UPDATE_OPPORTUNITY_ERROR',
           `Opportunity with ID ${id} not found`,
           HttpStatus.BAD_REQUEST
         );
       }
 
-      // Utility function to fetch and validate related entities
-      const validateAndFetch = async <T>(
-        entityClass: ObjectType<T>,
-        entityId?: string
-      ): Promise<T | null> => {
-        if (!entityId) return null;
+      // :white_check_mark: Only update the fields explicitly present in updateOpportunityDto
+      const updateData: Partial<Opportunity> = {};
 
-        const entity = await this.entityManager.findOne(entityClass, {
-          where: { id: entityId } as unknown as FindOneOptions<T>,
-        });
-
-        if (!entity) {
-          throw new BadRequestException(
-            `${(entityClass as any).name} with ID ${entityId} not found`
-          );
-        }
-
-        return entity as T;
-      };
-
-      // Fetch related entities only if provided
-      const location =
-        updateOpportunityDto.location !== undefined
-          ? await validateAndFetch(Location, updateOpportunityDto.location)
-          : opportunity.location;
-
-      const company =
-        updateOpportunityDto.company !== undefined
-          ? await validateAndFetch(Organization, updateOpportunityDto.company)
-          : opportunity.company;
-
-      const category =
-        updateOpportunityDto.category !== undefined
-          ? await validateAndFetch(Category, updateOpportunityDto.category)
-          : opportunity.category;
-
-      const benefit =
-        updateOpportunityDto.benefit !== undefined
-          ? await validateAndFetch(Benefit, updateOpportunityDto.benefit)
-          : opportunity.benefit;
-
-      // Handle skills array
-      let skills: string[] = opportunity.skills ?? [];
-      if (updateOpportunityDto.skills !== undefined) {
-        skills = Array.isArray(updateOpportunityDto.skills)
-          ? updateOpportunityDto.skills
-          : opportunity.skills ?? [];
+      if (updateOpportunityDto.title !== undefined) {
+        updateData.title = updateOpportunityDto.title.trim();
       }
-
-      // Validate rejection reason
+      if (updateOpportunityDto.description !== undefined) {
+        updateData.description = updateOpportunityDto.description;
+      }
+      if (updateOpportunityDto.work_nature !== undefined) {
+        updateData.work_nature = updateOpportunityDto.work_nature;
+      }
+      if (updateOpportunityDto.opportunity_type !== undefined) {
+        updateData.opportunity_type = updateOpportunityDto.opportunity_type;
+      }
+      if (updateOpportunityDto.experience_level !== undefined) {
+        updateData.experience_level = updateOpportunityDto.experience_level;
+      }
+      if (updateOpportunityDto.min_experience !== undefined) {
+        updateData.min_experience = updateOpportunityDto.min_experience;
+      }
+      if (updateOpportunityDto.min_salary !== undefined) {
+        updateData.min_salary = updateOpportunityDto.min_salary;
+      }
+      if (updateOpportunityDto.max_salary !== undefined) {
+        updateData.max_salary = updateOpportunityDto.max_salary;
+      }
+      if (updateOpportunityDto.no_of_candidates !== undefined) {
+        updateData.no_of_candidates = updateOpportunityDto.no_of_candidates;
+      }
+      if (updateOpportunityDto.status !== undefined) {
+        updateData.status = updateOpportunityDto.status;
+      }
       if (
         updateOpportunityDto.status === 'rejected' &&
         (!updateOpportunityDto.rejection_reason ||
@@ -262,90 +245,112 @@ export class OpportunityService {
       ) {
         return APIResponse.error(
           res,
-          'UPDATE_OPPORTUNITY', // API ID (replace if needed)
+          'UPDATE_OPPORTUNITY',
           'UPDATE_OPPORTUNITY_ERROR',
           'Rejection reason is required when setting status to rejected.',
           HttpStatus.BAD_REQUEST
         );
       }
+      if (updateOpportunityDto.rejection_reason !== undefined) {
+        updateData.rejection_reason =
+          updateOpportunityDto.status === 'rejected'
+            ? updateOpportunityDto.rejection_reason
+            : null; // Reset if not rejected
+      }
+      if (updateOpportunityDto.updated_by !== undefined) {
+        updateData.updated_by = updateOpportunityDto.updated_by.trim();
+      }
 
-      // Update fields only if provided
-      Object.assign(opportunity, {
-        ...(updateOpportunityDto.title !== undefined && {
-          title: updateOpportunityDto.title.trim(),
-        }),
-        ...(updateOpportunityDto.description !== undefined && {
-          description: updateOpportunityDto.description,
-        }),
-        ...(updateOpportunityDto.work_nature !== undefined && {
-          work_nature: updateOpportunityDto.work_nature,
-        }),
-        ...(updateOpportunityDto.opportunity_type !== undefined && {
-          opportunity_type: updateOpportunityDto.opportunity_type,
-        }),
-        ...(updateOpportunityDto.experience_level !== undefined && {
-          experience_level: updateOpportunityDto.experience_level,
-        }),
-        ...(updateOpportunityDto.min_experience !== undefined && {
-          min_experience: updateOpportunityDto.min_experience,
-        }),
-        ...(updateOpportunityDto.min_salary !== undefined && {
-          min_salary: updateOpportunityDto.min_salary,
-        }),
-        ...(updateOpportunityDto.max_salary !== undefined && {
-          max_salary: updateOpportunityDto.max_salary,
-        }),
-        ...(updateOpportunityDto.no_of_candidates !== undefined && {
-          no_of_candidates: updateOpportunityDto.no_of_candidates,
-        }),
-        ...(updateOpportunityDto.status !== undefined && {
-          status: updateOpportunityDto.status,
-        }),
-        ...(updateOpportunityDto.rejection_reason !== undefined && {
-          rejection_reason:
-            updateOpportunityDto.status === 'rejected'
-              ? updateOpportunityDto.rejection_reason
-              : null, // Reset if not rejected
-        }),
-        ...(updateOpportunityDto.updated_by !== undefined && {
-          updated_by: updateOpportunityDto.updated_by.trim(),
-        }),
-        ...(updateOpportunityDto.skills !== undefined && { skills }),
-        benefit: benefit ?? undefined,
-        other_benefit:
-          benefit && benefit.name === 'Other'
+      if (updateOpportunityDto.skills !== undefined) {
+        updateData.skills = Array.isArray(updateOpportunityDto.skills)
+          ? updateOpportunityDto.skills
+          : opportunity.skills ?? [];
+      }
+      if (updateOpportunityDto.offer_letter_provided !== undefined) {
+        updateData.offer_letter_provided =
+          updateOpportunityDto.offer_letter_provided;
+      }
+      if (updateOpportunityDto.pricing_type !== undefined) {
+        updateData.pricing_type = updateOpportunityDto.pricing_type;
+      }
+
+      // :white_check_mark: Only update relationships if explicitly provided in request
+      if (updateOpportunityDto.location !== undefined) {
+        const location = await this.entityManager.findOne(Location, {
+          where: { id: updateOpportunityDto.location },
+        });
+        if (!location) {
+          return APIResponse.error(
+            res,
+            'UPDATE_OPPORTUNITY',
+            'UPDATE_OPPORTUNITY_ERROR',
+            `Location with ID ${updateOpportunityDto.location} not found.`,
+            HttpStatus.BAD_REQUEST
+          );
+        }
+        updateData.location = location;
+      }
+      if (updateOpportunityDto.company !== undefined) {
+        const company = await this.entityManager.findOne(Organization, {
+          where: { id: updateOpportunityDto.company },
+        });
+        if (!company) {
+          return APIResponse.error(
+            res,
+            'UPDATE_OPPORTUNITY',
+            'UPDATE_OPPORTUNITY_ERROR',
+            `Company with ID ${updateOpportunityDto.company} not found.`,
+            HttpStatus.BAD_REQUEST
+          );
+        }
+        updateData.company = company;
+      }
+      if (updateOpportunityDto.category !== undefined) {
+        const category = await this.entityManager.findOne(Category, {
+          where: { id: updateOpportunityDto.category },
+        });
+        if (!category) {
+          return APIResponse.error(
+            res,
+            'UPDATE_OPPORTUNITY',
+            'UPDATE_OPPORTUNITY_ERROR',
+            `Category with ID ${updateOpportunityDto.category} not found.`,
+            HttpStatus.BAD_REQUEST
+          );
+        }
+        updateData.category = category;
+      }
+      if (updateOpportunityDto.benefit !== undefined) {
+        const benefit = await this.entityManager.findOne(Benefit, {
+          where: { id: updateOpportunityDto.benefit },
+        });
+        if (!benefit) {
+          return APIResponse.error(
+            res,
+            'UPDATE_OPPORTUNITY',
+            'UPDATE_OPPORTUNITY_ERROR',
+            `Benefit with ID ${updateOpportunityDto.benefit} not found.`,
+            HttpStatus.BAD_REQUEST
+          );
+        }
+        updateData.benefit = benefit;
+        updateData.other_benefit =
+          benefit.name === 'Other'
             ? updateOpportunityDto.other_benefit ?? undefined
-            : undefined,
+            : undefined;
+      }
 
-        ...(updateOpportunityDto.offer_letter_provided !== undefined && {
-          offer_letter_provided: updateOpportunityDto.offer_letter_provided,
-        }),
-        ...(updateOpportunityDto.pricing_type !== undefined && {
-          pricing_type: updateOpportunityDto.pricing_type,
-        }),
-      });
+      // :white_check_mark: Apply updates only to the provided fields
+      await this.entityManager.update(Opportunity, id, updateData);
 
-      // Assign validated entities
-      opportunity.location = location;
-      opportunity.company = company;
-      opportunity.category = category;
-
-      // Save the updated opportunity
-      const updatedOpportunity = await this.entityManager.save(
-        Opportunity,
-        opportunity
-      );
-
-      // Return success response using APIResponse
       return APIResponse.success(
         res,
-        'UPDATE_OPPORTUNITY', // Replace with actual API ID if available
-        { data: updatedOpportunity, total: 1 },
+        'UPDATE_OPPORTUNITY',
+        { data: { id, ...updateData }, total: 1 },
         HttpStatus.OK,
         'Opportunity updated successfully'
       );
     } catch (error) {
-      // Return error response
       return APIResponse.error(
         res,
         'update',
@@ -390,12 +395,12 @@ export class OpportunityService {
             { skillIds }
           );
         } else {
-          return APIResponse.error(
+          return APIResponse.success(
             res,
             query.apiId,
             'NOT_FOUND',
-            'No opportunities found for given skills',
-            HttpStatus.NOT_FOUND
+            HttpStatus.NOT_FOUND,
+            'No opportunities found for given skills'
           );
         }
       }
