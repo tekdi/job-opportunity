@@ -459,7 +459,7 @@ export class OpportunityService {
             query.apiId,
             'NOT_FOUND',
             'No opportunities found',
-            HttpStatus.NOT_FOUND
+            HttpStatus.OK
           );
         }
       }
@@ -488,7 +488,7 @@ export class OpportunityService {
             query.apiId,
             'NOT_FOUND',
             'No opportunities found',
-            HttpStatus.NOT_FOUND
+            HttpStatus.OK
           );
         }
       }
@@ -576,12 +576,12 @@ export class OpportunityService {
       const opportunityIds = opportunities.map((opp) => opp.id);
 
       if (!opportunityIds || opportunityIds.length === 0) {
-        return APIResponse.error(
+        return APIResponse.success(
           res,
           query.apiId,
-          'Error fetching opportunities',
-          'No Opportunities found',
-          HttpStatus.NOT_FOUND
+          { data: response, total },
+          HttpStatus.OK,
+          'No Opportunities found'
         ); // Return an empty array if there are no opportunity IDs
       }
       // Add opportunity application stats (mapped, shortlisted, accepted, rejected, withdrawn, hired)
