@@ -104,11 +104,15 @@ export class OrganizationsService {
       qb.skip((page - 1) * limit).take(limit);
 
       const organizations = await qb.getMany();
+      // Get the total count of organizations (ignoring pagination)
+      const total = await this.entityManager
+        .createQueryBuilder(Organization, 'organization')
+        .getCount();
 
       return APIResponse.success(
         res,
         'Organizations retrieved successfully',
-        organizations,
+        { data: organizations, total },
         HttpStatus.OK,
         'Organizations retrieved successfully'
       );
