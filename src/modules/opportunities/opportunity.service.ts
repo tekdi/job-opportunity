@@ -251,6 +251,7 @@ export class OpportunityService {
           HttpStatus.BAD_REQUEST
         );
       }
+      // white_check_mark: Only update rejection reason if status is rejected
       if (updateOpportunityDto.rejection_reason !== undefined) {
         updateData.rejection_reason =
           updateOpportunityDto.status === 'rejected'
