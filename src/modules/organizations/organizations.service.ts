@@ -109,10 +109,13 @@ export class OrganizationsService {
         .createQueryBuilder(Organization, 'organization')
         .getCount();
 
+      // Cast to 'any[]' to allow assigning 'total'
+      (organizations as any)['total'] = total;
+
       return APIResponse.success(
         res,
         'Organizations retrieved successfully',
-        { data: organizations, total },
+        organizations,
         HttpStatus.OK,
         'Organizations retrieved successfully'
       );
