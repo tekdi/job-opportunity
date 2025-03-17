@@ -46,7 +46,7 @@ export class CategoriesService {
   async findAll(query: any, res: any): Promise<any> {
     try {
       const page = query.page ? parseInt(query.page, 10) : 1;
-      const limit = query.limit ? parseInt(query.limit, 10) : 10;
+      const limit = query.limit ? parseInt(query.limit, 10) : null;
 
       const qb = this.entityManager.createQueryBuilder(Category, 'category');
 
@@ -73,8 +73,10 @@ export class CategoriesService {
       } else {
         qb.orderBy('category.created_at', 'DESC');
       }
+      if (limit) {
+        qb.skip((page - 1) * limit).take(limit);
+      }
 
-      qb.skip((page - 1) * limit).take(limit);
       const categories = await qb.getMany();
 
       return APIResponse.success(

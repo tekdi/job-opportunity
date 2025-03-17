@@ -58,7 +58,7 @@ export class SkillsService {
   async findAll(query: any, res: any): Promise<any> {
     try {
       const page = query.page ? parseInt(query.page, 10) : 1;
-      const limit = query.limit ? parseInt(query.limit, 10) : 10;
+      const limit = query.limit ? parseInt(query.limit, 10) : null;
 
       const qb = this.skillRepository.createQueryBuilder('skill');
 
@@ -73,7 +73,9 @@ export class SkillsService {
         qb.orderBy('skill.created_at', 'DESC');
       }
 
-      qb.skip((page - 1) * limit).take(limit);
+      if (limit) {
+        qb.skip((page - 1) * limit).take(limit);
+      }
       const skills = await qb.getMany();
 
       return APIResponse.success(
