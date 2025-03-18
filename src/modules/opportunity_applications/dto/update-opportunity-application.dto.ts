@@ -1,4 +1,3 @@
-import { PartialType } from '@nestjs/mapped-types';
 import { IsUUID, IsOptional, IsNotEmpty, ValidateIf } from 'class-validator';
 
 export class UpdateOpportunityApplicationDto {
