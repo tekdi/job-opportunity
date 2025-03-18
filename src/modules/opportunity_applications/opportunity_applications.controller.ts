@@ -7,7 +7,6 @@ import {
   Query,
   Put,
   Patch,
-  NotFoundException,
   Res,
   HttpStatus,
 } from '@nestjs/common';

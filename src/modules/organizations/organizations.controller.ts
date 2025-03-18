@@ -8,12 +8,10 @@ import {
   Delete,
   Patch,
   Res,
-  HttpStatus,
 } from '@nestjs/common';
 import { OrganizationsService } from './organizations.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
-import APIResponse from 'modules/common/responses/response';
 import {
   ApiTags,
   ApiOperation,

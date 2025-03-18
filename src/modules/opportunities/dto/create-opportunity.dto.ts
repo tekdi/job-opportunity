@@ -8,8 +8,6 @@ import {
   IsNumber,
   ValidateIf,
   IsArray,
-  IsInt,
-  Min,
   MaxLength,
 } from 'class-validator';
 import { OpportunityPricingType } from '../entities/opportunity.entity';

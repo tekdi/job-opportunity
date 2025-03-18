@@ -5,8 +5,6 @@ import {
   IsOptional,
   ValidateIf,
   IsArray,
-  IsInt,
-  Min,
   MaxLength,
   IsString,
   IsBoolean,

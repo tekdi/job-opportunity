@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Benefit } from './entities/benefits.entity';
@@ -9,7 +9,7 @@ import APIResponse from 'modules/common/responses/response';
 export class BenefitsService {
   constructor(
     @InjectRepository(Benefit)
-    private readonly benefitsRepository: Repository<Benefit>,
+    private readonly benefitsRepository: Repository<Benefit>
   ) {}
 
   async create(createBenefitsDto: CreateBenefitsDto, res: any): Promise<any> {
@@ -22,7 +22,7 @@ export class BenefitsService {
         'Benefits created successfully',
         savedBenefits,
         HttpStatus.OK,
-        'New benefits entry added',
+        'New benefits entry added'
       );
     } catch (error) {
       return APIResponse.error(
@@ -30,7 +30,7 @@ export class BenefitsService {
         'Failed to create benefits',
         'ERROR_CREATE_BENEFITS',
         'Error creating benefits',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -44,7 +44,7 @@ export class BenefitsService {
         'Benefits retrieved successfully',
         benefits,
         HttpStatus.OK,
-        'List of all benefits',
+        'List of all benefits'
       );
     } catch (error) {
       return APIResponse.error(
@@ -52,7 +52,7 @@ export class BenefitsService {
         'Failed to retrieve benefits',
         'ERROR_FETCH_BENEFITS',
         'Error fetching benefits',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -68,7 +68,7 @@ export class BenefitsService {
           `Benefits with ID ${id} not found`,
           'ERROR_BENEFIT_NOT_FOUND',
           'No benefits found with the given ID',
-          HttpStatus.NOT_FOUND,
+          HttpStatus.NOT_FOUND
         );
       }
 
@@ -77,7 +77,7 @@ export class BenefitsService {
         'Benefit retrieved successfully',
         benefits,
         HttpStatus.OK,
-        'Details of the requested benefit',
+        'Details of the requested benefit'
       );
     } catch (error) {
       return APIResponse.error(
@@ -85,7 +85,7 @@ export class BenefitsService {
         'Failed to retrieve benefits',
         'ERROR_FETCH_BENEFIT',
         'Error fetching benefits',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -94,7 +94,7 @@ export class BenefitsService {
   async update(
     id: string,
     updateBenefitsDto: UpdateBenefitsDto,
-    res: any,
+    res: any
   ): Promise<any> {
     try {
       await this.findOne(id, res); // Check if exists
@@ -106,7 +106,7 @@ export class BenefitsService {
         'Benefits updated successfully',
         updatedBenefit,
         HttpStatus.OK,
-        'Updated benefit details',
+        'Updated benefit details'
       );
     } catch (error) {
       return APIResponse.error(
@@ -114,7 +114,7 @@ export class BenefitsService {
         'Failed to update benefits',
         'ERROR_UPDATE_BENEFITS',
         'Error updating benefits',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -130,7 +130,7 @@ export class BenefitsService {
         'Benefits deleted successfully',
         null,
         HttpStatus.OK,
-        'The specified benefit has been removed',
+        'The specified benefit has been removed'
       );
     } catch (error) {
       return APIResponse.error(
@@ -138,7 +138,7 @@ export class BenefitsService {
         'Failed to delete benefits',
         'ERROR_DELETE_BENEFITS',
         'Error deleting benefits',
-        HttpStatus.INTERNAL_SERVER_ERROR,
+        HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
