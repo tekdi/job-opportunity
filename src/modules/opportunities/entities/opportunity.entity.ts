@@ -5,6 +5,8 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { Location } from '../../locations/entities/location.entity';
 import { Organization } from '../../organizations/entities/organization.entity';
@@ -101,11 +103,8 @@ export class Opportunity {
   })
   updated_at!: Date;
 
-  @ManyToOne(() => Benefit, (benefit) => benefit.opportunities, {
-    nullable: true,
-  })
-  @JoinColumn({ name: 'benefit_id' })
-  benefit?: Benefit;
+  @Column({ type: 'jsonb', nullable: true })
+  benefits!: string[];
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   other_benefit?: string;

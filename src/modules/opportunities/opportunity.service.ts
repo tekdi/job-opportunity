@@ -1,5 +1,5 @@
 import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
-import { EntityManager, ObjectType, FindOneOptions } from 'typeorm';
+import { EntityManager, ObjectType, FindOneOptions, In } from 'typeorm';
 import {
   Opportunity,
   OpportunityPricingType,
@@ -74,11 +74,41 @@ export class OpportunityService {
           })
         : null;
 
-      const benefit = createOpportunityDto.benefit
-        ? await this.entityManager.findOne(Benefit, {
-            where: { id: createOpportunityDto.benefit },
-          })
-        : null;
+      // Fetch "Other" Benefit UUID Dynamically
+      const otherBenefitRecord = await this.entityManager.findOne(Benefit, {
+        where: { name: 'Other' },
+      });
+      const otherBenefitUUID = otherBenefitRecord?.id ?? null;
+
+      // Validate Benefits (Fetch from DB)
+      const { benefits = [] } = createOpportunityDto;
+      const benefitRecords = benefits.length
+        ? await this.entityManager.findBy(Benefit, { id: In(benefits) })
+        : [];
+
+      // Validate benefits
+      if (benefitRecords.length !== benefits.length) {
+        return APIResponse.error(
+          res,
+          'CREATE_OPPORTUNITY',
+          'CREATE_OPPORTUNITY_ERROR',
+          'Some benefits are invalid',
+          HttpStatus.BAD_REQUEST
+        );
+      }
+
+      // Check if "Other" benefit is selected
+      const hasOtherBenefit = otherBenefitUUID
+        ? benefits.includes(otherBenefitUUID)
+        : false;
+
+      // Store only valid Benefit IDs
+      const selectedBenefits = benefitRecords.map((b) => b.id!);
+
+      // Determine "Other Benefit" field value
+      const otherBenefitValue = hasOtherBenefit
+        ? createOpportunityDto.other_benefit ?? ''
+        : ''; // Reset if "Other" is not selected
 
       // Throw error if any required entity is missing
       if (!location) {
@@ -109,20 +139,6 @@ export class OpportunityService {
         );
       }
 
-      if (
-        createOpportunityDto.benefit &&
-        !benefit &&
-        createOpportunityDto.other_benefit
-      ) {
-        return APIResponse.error(
-          res,
-          'CREATE_OPPORTUNITY', // API ID (replace if needed)
-          'CREATE_OPPORTUNITY_ERROR',
-          'Other Benefit can only be provided if Other is selected as a benefit.',
-          HttpStatus.BAD_REQUEST
-        );
-      }
-
       // Ensure skills is an array
       const skills = Array.isArray(createOpportunityDto.skills)
         ? createOpportunityDto.skills
@@ -145,11 +161,8 @@ export class OpportunityService {
       opportunity.skills = skills;
       opportunity.created_by = createOpportunityDto.created_by.trim();
       opportunity.updated_by = createOpportunityDto.updated_by.trim();
-      opportunity.benefit = benefit ?? undefined;
-      opportunity.other_benefit =
-        benefit && benefit.name === 'Other'
-          ? createOpportunityDto.other_benefit ?? undefined
-          : undefined;
+      opportunity.benefits = selectedBenefits;
+      opportunity.other_benefit = otherBenefitValue;
 
       opportunity.offer_letter_provided =
         createOpportunityDto.offer_letter_provided ?? false; // Default false
@@ -321,24 +334,46 @@ export class OpportunityService {
         }
         updateData.category = category;
       }
-      if (updateOpportunityDto.benefit !== undefined) {
-        const benefit = await this.entityManager.findOne(Benefit, {
-          where: { id: updateOpportunityDto.benefit },
-        });
-        if (!benefit) {
+
+      // Fetch "Other" Benefit UUID
+      const otherBenefit = await this.entityManager.findOne(Benefit, {
+        where: { name: 'Other' }, // Fetch UUID dynamically
+      });
+
+      // Handle Benefits
+      if (updateOpportunityDto.benefits !== undefined) {
+        // Fetch benefits from DB
+        const benefitRecords = updateOpportunityDto.benefits.length
+          ? await this.entityManager.findBy(Benefit, {
+              id: In(updateOpportunityDto.benefits),
+            })
+          : [];
+
+        // Ensure benefits exist
+        if (benefitRecords.length !== updateOpportunityDto.benefits.length) {
           return APIResponse.error(
             res,
             'UPDATE_OPPORTUNITY',
             'UPDATE_OPPORTUNITY_ERROR',
-            `Benefit with ID ${updateOpportunityDto.benefit} not found.`,
+            'Some benefits are invalid',
             HttpStatus.BAD_REQUEST
           );
         }
-        updateData.benefit = benefit;
-        updateData.other_benefit =
-          benefit.name === 'Other'
-            ? updateOpportunityDto.other_benefit ?? undefined
-            : undefined;
+
+        // Store benefit IDs
+        updateData.benefits = benefitRecords.map((b) => b.id!).filter(Boolean);
+
+        // Check if "Other" benefit is selected (Dynamic Check)
+        const hasOtherBenefit = otherBenefit
+          ? updateData.benefits.includes(otherBenefit.id!)
+          : false;
+
+        // Accept or Reset `other_benefit` Based on Selected Benefits
+        if (hasOtherBenefit) {
+          updateData.other_benefit = updateOpportunityDto.other_benefit ?? '';
+        } else {
+          updateData.other_benefit = ''; // Reset when "Other" is NOT selected
+        }
       }
 
       // :white_check_mark: Apply updates only to the provided fields
@@ -705,7 +740,7 @@ export class OpportunityService {
     }
   }
 
-  //Delete/Archive Opportunity
+  // Delete/Archive Opportunity
   async archive(id: string, userId: string, res: Response): Promise<any> {
     try {
       // Validate userId

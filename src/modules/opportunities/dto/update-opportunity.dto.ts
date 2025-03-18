@@ -41,8 +41,9 @@ export class UpdateOpportunityDto extends PartialType(CreateOpportunityDto) {
   skills?: string[];
 
   @IsOptional()
-  @IsUUID()
-  benefit?: string;
+  @IsArray()
+  @IsUUID('4', { each: true })
+  benefits?: string[]; // Accept multiple benefit UUIDs
 
   @IsOptional()
   @IsString()
