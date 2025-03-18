@@ -1,39 +1,122 @@
 import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Not, Repository } from 'typeorm';
+import { ILike, Not, Repository, FindOptionsWhere } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import APIResponse from 'modules/common/responses/response';
+import { isUUID } from 'class-validator';
+import { CategoriesService } from '../categories/categories.service';
 
 @Injectable()
 export class SkillsService {
   constructor(
     @InjectRepository(Skill)
-    private readonly skillRepository: Repository<Skill>
+    private readonly skillRepository: Repository<Skill>,
+    private readonly categoriesService: CategoriesService
   ) {}
 
-  // Create new skill
-  async create(createSkillDto: CreateSkillDto, res: any): Promise<any> {
-    try {
-      // Check if a skill with the same name (case-insensitive) already exists
-      const existingSkill = await this.skillRepository.findOne({
-        where: {
-          name: ILike(createSkillDto.name.trim()),
-        },
-      });
+  // Check skill and caetgories id
+  async validateSkill(name: string, categories_id?: string): Promise<boolean> {
+    if (!name || name.trim().length === 0) {
+      throw new Error('Skill name cannot be empty');
+    }
 
-      if (existingSkill) {
-        return APIResponse.error(
-          res,
-          'Skill name already exists',
-          'ERROR_CREATE_SKILL_DUPLICATE',
-          'Skill with the same name already exists',
-          HttpStatus.CONFLICT
+    const existingSkill = await this.skillRepository.findOne({
+      where: {
+        name: ILike(name.trim()),
+        ...(categories_id ? { categories_id } : {}), // Only check category if provided
+      },
+    });
+
+    return !!existingSkill; // Returns true if skill exists, otherwise false
+  }
+  //created skill
+
+  async create(
+    createSkillDto: CreateSkillDto,
+    res: any,
+    created_by: string, // Add created_by
+    updated_by: string
+  ): Promise<any> {
+    try {
+      let { name, categories_id } = createSkillDto;
+      name = name.trim();
+      categories_id = categories_id?.trim() || null;
+      // ✅ Validate categories_id if provided
+      if (categories_id) {
+        if (!isUUID(categories_id)) {
+          return APIResponse.error(
+            res,
+            'Invalid category ID format',
+            'ERROR_INVALID_CATEGORY_ID',
+            'Provided categories_id is not a valid UUID',
+            HttpStatus.BAD_REQUEST
+          );
+        }
+
+        // ✅ Check if the category exists in the categories table
+        const categoryExists = await this.categoriesService.findOne(
+          categories_id,
+          res
         );
+
+        if (!categoryExists) {
+          return APIResponse.error(
+            res,
+            'Category not found',
+            'ERROR_CATEGORY_NOT_FOUND',
+            'Provided categories_id does not exist',
+            HttpStatus.NOT_FOUND
+          );
+        }
+      }
+      // Check if the skill with same name & categories_id exists
+      if (categories_id) {
+        // Check if the skill with the same name & categories_id exists
+        const existingSkillWithCategory = await this.skillRepository.findOne({
+          where: {
+            name: ILike(name),
+            categories_id: categories_id, // Only check category if provided
+          },
+        });
+
+        if (existingSkillWithCategory) {
+          return APIResponse.error(
+            res,
+            'Skill with the same name and category already exists',
+            'ERROR_CREATE_SKILL_DUPLICATE',
+            'Skill with the same name and category already exists',
+            HttpStatus.CONFLICT
+          );
+        }
+      } else {
+        // If categories_id is not provided, check only for the name
+        const existingSkillWithoutCategory = await this.skillRepository.findOne(
+          {
+            where: { name: ILike(name) },
+          }
+        );
+
+        if (existingSkillWithoutCategory) {
+          return APIResponse.error(
+            res,
+            'Skill name already exists',
+            'ERROR_CREATE_SKILL_DUPLICATE_NAME',
+            'Skill with the same name already exists',
+            HttpStatus.CONFLICT
+          );
+        }
       }
 
-      const skill = this.skillRepository.create(createSkillDto);
+      // Create and save the skill
+      const skill = this.skillRepository.create({
+        name: name.trim(),
+        categories_id, // Assign undefined instead of null
+        created_by: created_by, // Add created_by
+        updated_by: updated_by, // Add updated_by // Add updated_by
+      });
+
       const savedSkill = await this.skillRepository.save(skill);
 
       return APIResponse.success(
@@ -55,6 +138,7 @@ export class SkillsService {
   }
 
   // Fetch all skills
+
   async findAll(query: any, res: any): Promise<any> {
     try {
       const page = query.page ? parseInt(query.page, 10) : 1;
