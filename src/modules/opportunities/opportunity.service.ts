@@ -1,5 +1,5 @@
-import { Injectable, BadRequestException, HttpStatus } from '@nestjs/common';
-import { EntityManager, ObjectType, FindOneOptions, In } from 'typeorm';
+import { Injectable, HttpStatus } from '@nestjs/common';
+import { EntityManager, In } from 'typeorm';
 import {
   Opportunity,
   OpportunityPricingType,
