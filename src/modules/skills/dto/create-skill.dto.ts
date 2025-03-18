@@ -12,4 +12,8 @@ export class CreateSkillDto {
   @IsNotEmpty()
   @IsUUID()
   updated_by!: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  categories_id?: string | null;
 }

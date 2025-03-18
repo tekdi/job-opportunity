@@ -25,4 +25,7 @@ export class Skill {
 
   @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   updated_at!: Date;
+
+  @Column({ type: 'uuid', nullable: true })
+  categories_id?: string | null;
 }

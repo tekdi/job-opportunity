@@ -43,8 +43,10 @@ export class SkillsController {
     @Res() res: any
   ) {
     return await this.skillsService.create(
-      { ...createSkillDto, created_by: userId, updated_by: userId },
-      res
+      createSkillDto, // Pass DTO
+      res, // Pass response object
+      userId, // Pass userId as `created_by`
+      userId // Pass userId as `updated_by`
     );
   }
 
