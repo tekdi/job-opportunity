@@ -43,7 +43,7 @@ export class SkillsService {
       let { name, categories_id } = createSkillDto;
       name = name.trim();
       categories_id = categories_id?.trim() || null;
-      // ✅ Validate categories_id if provided
+      // Validate categories_id if provided
       if (categories_id) {
         if (!isUUID(categories_id)) {
           return APIResponse.error(
@@ -55,7 +55,7 @@ export class SkillsService {
           );
         }
 
-        // ✅ Check if the category exists in the categories table
+        // Check if the category exists in the categories table
         const categoryExists = await this.categoriesService.findOne(
           categories_id,
           res
