@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Not, Repository, FindOptionsWhere } from 'typeorm';
+import { ILike, Not, Repository } from 'typeorm';
 import { Skill } from './entities/skill.entity';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
@@ -25,14 +25,14 @@ export class SkillsService {
     const existingSkill = await this.skillRepository.findOne({
       where: {
         name: ILike(name.trim()),
-        ...(categories_id ? { categories_id } : {}), // Only check category if provided
+        ...(categories_id ? { categories_id } : {}), // Check category only if provided
       },
     });
 
     return !!existingSkill; // Returns true if skill exists, otherwise false
   }
-  //created skill
 
+  //create skills
   async create(
     createSkillDto: CreateSkillDto,
     res: any,
@@ -42,7 +42,7 @@ export class SkillsService {
     try {
       let { name, categories_id } = createSkillDto;
       name = name.trim();
-      categories_id = categories_id?.trim() || null;
+      categories_id = categories_id?.trim() ?? null;
       // Validate categories_id if provided
       if (categories_id) {
         if (!isUUID(categories_id)) {
@@ -52,22 +52,6 @@ export class SkillsService {
             'ERROR_INVALID_CATEGORY_ID',
             'Provided categories_id is not a valid UUID',
             HttpStatus.BAD_REQUEST
-          );
-        }
-
-        // Check if the category exists in the categories table
-        const categoryExists = await this.categoriesService.findOne(
-          categories_id,
-          res
-        );
-
-        if (!categoryExists) {
-          return APIResponse.error(
-            res,
-            'Category not found',
-            'ERROR_CATEGORY_NOT_FOUND',
-            'Provided categories_id does not exist',
-            HttpStatus.NOT_FOUND
           );
         }
       }
