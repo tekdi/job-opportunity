@@ -5,14 +5,11 @@ import {
   ManyToOne,
   JoinColumn,
   OneToMany,
-  ManyToMany,
-  JoinTable,
 } from 'typeorm';
 import { Location } from '../../locations/entities/location.entity';
 import { Organization } from '../../organizations/entities/organization.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { OpportunityApplication } from '../../opportunity_applications/entities/opportunity-application.entity';
-import { Benefit } from 'modules/benefits/entities/benefits.entity';
 
 export enum OpportunityPricingType {
   FREE = 'free',
