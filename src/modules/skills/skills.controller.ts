@@ -6,10 +6,8 @@ import {
   Param,
   Delete,
   Query,
-  Put,
   Patch,
   Res,
-  HttpStatus,
 } from '@nestjs/common';
 import { SkillsService } from './skills.service';
 import { CreateSkillDto } from './dto/create-skill.dto';

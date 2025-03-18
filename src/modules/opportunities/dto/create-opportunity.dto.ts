@@ -8,8 +8,6 @@ import {
   IsNumber,
   ValidateIf,
   IsArray,
-  IsInt,
-  Min,
   MaxLength,
 } from 'class-validator';
 import { OpportunityPricingType } from '../entities/opportunity.entity';
@@ -84,8 +82,9 @@ export class CreateOpportunityDto {
   category?: string;
 
   @IsOptional()
-  @IsUUID()
-  benefit?: string;
+  @IsArray()
+  @IsUUID('4', { each: true })
+  benefits?: string[]; // Accept multiple benefit UUIDs
 
   @IsOptional()
   @IsString()

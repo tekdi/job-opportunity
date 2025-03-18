@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
 import { Opportunity } from '../../opportunities/entities/opportunity.entity';
 
 @Entity('benefits')
@@ -20,6 +20,6 @@ export class Benefit {
   updated_at?: Date;
 
   // Relationship with Opportunity
-  @OneToMany(() => Opportunity, (opportunity) => opportunity.benefit)
-  opportunities?: Opportunity[];
+  @ManyToMany(() => Opportunity, (opportunity) => opportunity.benefits)
+  opportunities!: Opportunity[];
 }
