@@ -28,6 +28,7 @@ reviews:
     drafts: false
     base_branches:
       - 'main'
+      - 'east-africa-ym'
 
 chat:
   auto_reply: true
