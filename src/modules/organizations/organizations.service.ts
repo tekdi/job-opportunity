@@ -31,7 +31,7 @@ export class OrganizationsService {
       : null;
 
     // Throw error if any required entity is missing
-    if (!location) {
+    if (createOrganizationDto.location && !location) {
       return APIResponse.error(
         res,
         'CREATE_ORGANIZATION',
