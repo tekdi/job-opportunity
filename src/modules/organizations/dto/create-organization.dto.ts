@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsNotEmpty, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsUUID,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateOrganizationDto {
   @IsString()
@@ -19,4 +25,8 @@ export class CreateOrganizationDto {
   @IsNotEmpty()
   @IsUUID()
   updated_by!: string;
+
+  @ValidateIf((o) => o.location && o.location.trim() !== '')
+  @IsUUID()
+  location?: string;
 }

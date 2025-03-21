@@ -22,11 +22,11 @@ export class CreateOpportunityDto {
   description?: string = '';
 
   @IsNotEmpty()
-  @IsEnum(['Remote', 'On-site', 'Hybrid', 'Work from Office'])
+  @IsEnum(['Remote', 'Hybrid', 'Work from Office'])
   work_nature: string = 'Remote';
 
   @IsNotEmpty()
-  @IsEnum(['job', 'internship', 'attachment'])
+  @IsEnum(['part-time', 'full-time', 'intern', 'attachment'])
   opportunity_type: string = 'job';
 
   @IsNotEmpty()
