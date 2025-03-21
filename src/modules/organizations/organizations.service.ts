@@ -203,7 +203,7 @@ export class OrganizationsService {
           updated_by: updateOrganizationDto.updated_by,
         }),
         ...(updateOrganizationDto.location !== undefined && {
-          location: updateOrganizationDto.location.trim(),
+          location: updateOrganizationDto.location,
         }),
       });
 
