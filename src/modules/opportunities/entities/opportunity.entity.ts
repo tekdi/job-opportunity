@@ -29,17 +29,17 @@ export class Opportunity {
 
   @Column({
     type: 'enum',
-    enum: ['Remote', 'On-site', 'Hybrid', 'Work from Office'],
+    enum: ['Remote', 'Hybrid', 'Work from Office'],
     default: 'Remote',
   })
   work_nature: string = 'Remote';
 
   @Column({
     type: 'enum',
-    enum: ['job', 'internship', 'attachment'],
+    enum: ['part-time', 'full-time', 'intern', 'attachment'],
     nullable: true,
   })
-  opportunity_type: string = 'job';
+  opportunity_type: string = 'full-time';
 
   @Column({ type: 'enum', enum: ['entry', 'Part-time'], default: 'entry' })
   experience_level: string = 'entry';
