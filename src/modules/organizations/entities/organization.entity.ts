@@ -4,7 +4,10 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Location } from '../../locations/entities/location.entity';
 
 @Entity('organizations')
 export class Organization {
@@ -35,4 +38,8 @@ export class Organization {
     onUpdate: 'CURRENT_TIMESTAMP',
   })
   updated_at!: Date;
+
+  @ManyToOne(() => Location, { nullable: true })
+  @JoinColumn({ name: 'location' })
+  location?: Location | null = null;
 }

@@ -4,6 +4,7 @@ import { Organization } from './entities/organization.entity';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { UpdateOrganizationDto } from './dto/update-organization.dto';
 import APIResponse from 'modules/common/responses/response';
+import { Location } from '../locations/entities/location.entity';
 
 @Injectable()
 export class OrganizationsService {
@@ -22,6 +23,23 @@ export class OrganizationsService {
         HttpStatus.BAD_REQUEST
       );
     }
+    // Validate and fetch related location entity
+    const location = createOrganizationDto.location
+      ? await this.entityManager.findOne(Location, {
+          where: { id: createOrganizationDto.location },
+        })
+      : null;
+
+    // Throw error if any required entity is missing
+    if (!location) {
+      return APIResponse.error(
+        res,
+        'CREATE_ORGANIZATION',
+        'CREATE_ORGANIZATION_ERROR',
+        `Location with ID ${createOrganizationDto.location} not found.`,
+        HttpStatus.BAD_REQUEST
+      );
+    }
 
     const organization = new Organization();
     organization.name = createOrganizationDto.name.trim();
@@ -29,6 +47,7 @@ export class OrganizationsService {
     organization.website = createOrganizationDto.website ?? '';
     organization.created_by = createOrganizationDto.created_by;
     organization.updated_by = createOrganizationDto.updated_by;
+    organization.location = location;
 
     try {
       const savedOrganization = await this.entityManager.save(
@@ -182,6 +201,9 @@ export class OrganizationsService {
         }),
         ...(updateOrganizationDto.updated_by !== undefined && {
           updated_by: updateOrganizationDto.updated_by,
+        }),
+        ...(updateOrganizationDto.location !== undefined && {
+          location: updateOrganizationDto.location.trim(),
         }),
       });
 
