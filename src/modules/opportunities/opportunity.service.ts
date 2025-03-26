@@ -407,9 +407,15 @@ export class OpportunityService {
         .createQueryBuilder(Opportunity, 'opportunity')
         .leftJoinAndSelect('opportunity.location', 'location')
         .leftJoinAndSelect('opportunity.company', 'company')
-        .leftJoinAndSelect('opportunity.category', 'category')
-        .where('opportunity.status != :status', { status: 'archived' });
+        .leftJoinAndSelect('opportunity.category', 'category');
+      // .where('opportunity.status != :status', { status: 'archived' });
+      // Apply condition only if status is NOT 'archived'
+      const opportunityStatus = query.status; // Rename variable
 
+      // Apply condition only if status is NOT 'archived'
+      if (opportunityStatus !== 'archived') {
+        qb.where('opportunity.status != :status', { status: 'archived' });
+      }
       // Skills Filter
       let skillRecords: Skill[] = [];
 
