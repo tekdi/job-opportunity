@@ -203,116 +203,12 @@ export class OpportunityApplicationService {
   // Fetch the application list
   async findAll(query: any, res: Response): Promise<any> {
     try {
-      const page =
-        query.page && !isNaN(query.page)
-          ? Math.max(parseInt(query.page, 10), 1)
-          : 1;
-      let limit =
-        query.limit && !isNaN(query.limit)
-          ? Math.max(parseInt(query.limit, 10), 1)
-          : 10;
-      limit = Math.min(limit, 100); // Prevent too large limits
-      const offset = (page - 1) * limit;
+      const { offset, limit } = this.getPaginationParams(query);
+      const archivedStatus = await this.getArchivedStatus(res);
+      if (!archivedStatus) return;
 
-      // Get the "archived" status UUID dynamically
-      const archivedStatus = await this.entityManager.findOne(
-        ApplicationStatus,
-        {
-          where: { status: 'archived' },
-        }
-      );
-
-      if (!archivedStatus) {
-        return APIResponse.error(
-          res,
-          'FIND_ALL_OPPORTUNITY_APPLICATIONS',
-          'ARCHIVED_STATUS_NOT_FOUND',
-          'Archived status not found in application_statuses table.',
-          HttpStatus.NOT_FOUND
-        );
-      }
-
-      const qb = this.entityManager
-        .createQueryBuilder(OpportunityApplication, 'application')
-        .leftJoinAndSelect('application.opportunity', 'opportunity')
-        .leftJoinAndSelect('application.status', 'status')
-        .leftJoinAndSelect('opportunity.location', 'location')
-        .leftJoinAndSelect('opportunity.company', 'company')
-        .leftJoinAndSelect('opportunity.category', 'category')
-        .select([
-          'application.id AS application_id',
-          'application.opportunity_id AS application_opportunity_id',
-          'application.status_id AS application_status_id',
-          'application.user_id AS application_user_id',
-          'application.match_score AS application_match_score',
-          'application.feedback AS application_feedback',
-          'application.youth_feedback AS application_youth_feedback',
-          'application.created_by AS application_created_by',
-          'application.updated_by AS application_updated_by',
-          'application.applied_skills AS application_applied_skills',
-          'application.created_at AS application_created_at',
-          'application.updated_at AS application_updated_at',
-          'status.id AS status_id',
-          'status.status AS status_name',
-          // Fetch opportunity details
-          'opportunity.id AS opportunity_id',
-          'opportunity.title AS opportunity_title',
-          'opportunity.description AS opportunity_description',
-          'opportunity.work_nature AS opportunity_work_nature',
-          'opportunity.opportunity_type AS opportunity_opportunity_type',
-          'opportunity.experience_level AS opportunity_experience_level',
-          'opportunity.min_experience AS opportunity_min_experience',
-          'opportunity.min_salary AS opportunity_min_salary',
-          'opportunity.max_salary AS opportunity_max_salary',
-          'opportunity.status AS opportunity_status',
-          'opportunity.created_by AS opportunity_created_by',
-          'opportunity.updated_by AS opportunity_updated_by',
-          // Fetch location details
-          'location.id AS location_id',
-          'location.city AS location_city',
-          'location.state AS location_state',
-          'location.country AS location_country',
-          // Fetch category details
-          'category.id AS category_id',
-          'category.name AS category_name',
-          // Fetch company details
-          'company.id AS company_id',
-          'company.name AS company_name',
-        ])
-        .where('application.status_id != :archivedStatusId', {
-          archivedStatusId: archivedStatus.id,
-        });
-
-      // Apply Filters
-      if (query.opportunity_id) {
-        qb.andWhere('application.opportunity_id = :opportunity_id', {
-          opportunity_id: query.opportunity_id,
-        });
-      }
-
-      if (query.status_id) {
-        qb.andWhere('application.status_id = :status_id', {
-          status_id: query.status_id,
-        });
-      }
-
-      if (query.applied_skills) {
-        const skillsArray = query.applied_skills.split(',');
-        qb.andWhere(
-          `EXISTS (
-                  SELECT 1 FROM jsonb_array_elements_text(application.applied_skills) skill_id 
-                  WHERE skill_id = ANY(:skillsArray)
-              )`,
-          { skillsArray }
-        );
-      }
-
-      if (query.search) {
-        qb.andWhere(
-          `(opportunity.title ILIKE :search OR status.status ILIKE :search)`,
-          { search: `%${query.search}%` }
-        );
-      }
+      const qb = this.buildBaseApplicationQuery(archivedStatus.id);
+      this.applyFilters(qb, query);
 
       if (query.orderBy) {
         const orderColumnMap = {
@@ -577,116 +473,12 @@ export class OpportunityApplicationService {
 
   async getMappedApplication(query: any, res: Response): Promise<any> {
     try {
-      const page =
-        query.page && !isNaN(query.page)
-          ? Math.max(parseInt(query.page, 10), 1)
-          : 1;
-      let limit =
-        query.limit && !isNaN(query.limit)
-          ? Math.max(parseInt(query.limit, 10), 1)
-          : 10;
-      limit = Math.min(limit, 100); // Prevent too large limits
-      const offset = (page - 1) * limit;
+      const { offset, limit } = this.getPaginationParams(query);
+      const archivedStatus = await this.getArchivedStatus(res);
+      if (!archivedStatus) return;
 
-      // Get the "archived" status UUID dynamically
-      const archivedStatus = await this.entityManager.findOne(
-        ApplicationStatus,
-        {
-          where: { status: 'archived' },
-        }
-      );
-
-      if (!archivedStatus) {
-        return APIResponse.error(
-          res,
-          'FIND_ALL_OPPORTUNITY_APPLICATIONS',
-          'ARCHIVED_STATUS_NOT_FOUND',
-          'Archived status not found in application_statuses table.',
-          HttpStatus.NOT_FOUND
-        );
-      }
-
-      const qb = this.entityManager
-        .createQueryBuilder(OpportunityApplication, 'application')
-        .leftJoinAndSelect('application.opportunity', 'opportunity')
-        .leftJoinAndSelect('application.status', 'status')
-        .leftJoinAndSelect('opportunity.location', 'location')
-        .leftJoinAndSelect('opportunity.company', 'company')
-        .leftJoinAndSelect('opportunity.category', 'category')
-        .select([
-          'application.id AS application_id',
-          'application.opportunity_id AS application_opportunity_id',
-          'application.status_id AS application_status_id',
-          'application.user_id AS application_user_id',
-          'application.match_score AS application_match_score',
-          'application.feedback AS application_feedback',
-          'application.youth_feedback AS application_youth_feedback',
-          'application.created_by AS application_created_by',
-          'application.updated_by AS application_updated_by',
-          'application.applied_skills AS application_applied_skills',
-          'application.created_at AS application_created_at',
-          'application.updated_at AS application_updated_at',
-          'status.id AS status_id',
-          'status.status AS status_name',
-          // Opportunity details
-          'opportunity.id AS opportunity_id',
-          'opportunity.title AS opportunity_title',
-          'opportunity.description AS opportunity_description',
-          'opportunity.work_nature AS opportunity_work_nature',
-          'opportunity.opportunity_type AS opportunity_opportunity_type',
-          'opportunity.experience_level AS opportunity_experience_level',
-          'opportunity.min_experience AS opportunity_min_experience',
-          'opportunity.min_salary AS opportunity_min_salary',
-          'opportunity.max_salary AS opportunity_max_salary',
-          'opportunity.status AS opportunity_status',
-          'opportunity.created_by AS opportunity_created_by',
-          'opportunity.updated_by AS opportunity_updated_by',
-          // Location details
-          'location.id AS location_id',
-          'location.city AS location_city',
-          'location.state AS location_state',
-          'location.country AS location_country',
-          // Category details
-          'category.id AS category_id',
-          'category.name AS category_name',
-          // Company details
-          'company.id AS company_id',
-          'company.name AS company_name',
-        ])
-        .where('application.status_id != :archivedStatusId', {
-          archivedStatusId: archivedStatus.id,
-        });
-
-      // Apply Filters
-      if (query.opportunity_id) {
-        qb.andWhere('application.opportunity_id = :opportunity_id', {
-          opportunity_id: query.opportunity_id,
-        });
-      }
-
-      if (query.status_id) {
-        qb.andWhere('application.status_id = :status_id', {
-          status_id: query.status_id,
-        });
-      }
-
-      if (query.applied_skills) {
-        const skillsArray = query.applied_skills.split(',');
-        qb.andWhere(
-          `EXISTS (
-                  SELECT 1 FROM jsonb_array_elements_text(application.applied_skills) skill_id 
-                  WHERE skill_id = ANY(:skillsArray)
-              )`,
-          { skillsArray }
-        );
-      }
-
-      if (query.search) {
-        qb.andWhere(
-          `(opportunity.title ILIKE :search OR status.status ILIKE :search)`,
-          { search: `%${query.search}%` }
-        );
-      }
+      const qb = this.buildBaseApplicationQuery(archivedStatus.id);
+      this.applyFilters(qb, query);
 
       if (query.orderBy) {
         const orderColumnMap = {
@@ -767,17 +559,19 @@ export class OpportunityApplicationService {
 
         groupedApplications.get(app.opportunity_id).applications.push({
           application_id: app.application_id,
-          status: {
+          application_status_id: {
             status_id: app.status_id,
             status_name: app.status_name,
           },
-          user_id: app.application_user_id,
-          match_score: app.application_match_score,
-          feedback: app.application_feedback,
-          youth_feedback: app.application_youth_feedback,
-          applied_skills: appliedSkillDetails,
-          created_at: app.application_created_at,
-          updated_at: app.application_updated_at,
+          application_user_id: app.application_user_id,
+          application_match_score: app.application_match_score,
+          application_feedback: app.application_feedback,
+          application_youth_feedback: app.application_youth_feedback,
+          application_applied_skills: appliedSkillDetails,
+          application_created_at: app.application_created_at,
+          application_updated_at: app.application_updated_at,
+          application_created_by: app.application_created_by,
+          application_updated_by: app.application_updated_by,
         });
       }
 
@@ -795,6 +589,130 @@ export class OpportunityApplicationService {
         'ERROR_FETCHING_APPLICATIONS',
         'Error fetching opportunity applications',
         HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  // Helper method for pagination
+  private getPaginationParams(query: any): {
+    offset: number;
+    limit: number;
+    page: number;
+  } {
+    const page =
+      query.page && !isNaN(query.page)
+        ? Math.max(parseInt(query.page, 10), 1)
+        : 1;
+    let limit =
+      query.limit && !isNaN(query.limit)
+        ? Math.max(parseInt(query.limit, 10), 1)
+        : 10;
+    limit = Math.min(limit, 100); // Prevent too large limits
+    const offset = (page - 1) * limit;
+    return { offset, limit, page };
+  }
+
+  // Helper method for getting archived status
+  private async getArchivedStatus(
+    res: Response
+  ): Promise<ApplicationStatus | null> {
+    const archivedStatus = await this.entityManager.findOne(ApplicationStatus, {
+      where: { status: 'archived' },
+    });
+
+    if (!archivedStatus) {
+      APIResponse.error(
+        res,
+        'FIND_ALL_OPPORTUNITY_APPLICATIONS',
+        'ARCHIVED_STATUS_NOT_FOUND',
+        'Archived status not found in application_statuses table.',
+        HttpStatus.NOT_FOUND
+      );
+      return null;
+    }
+    return archivedStatus;
+  }
+
+  // Helper method for building base query
+  private buildBaseApplicationQuery(archivedStatusId: string | undefined) {
+    return this.entityManager
+      .createQueryBuilder(OpportunityApplication, 'application')
+      .leftJoinAndSelect('application.opportunity', 'opportunity')
+      .leftJoinAndSelect('application.status', 'status')
+      .leftJoinAndSelect('opportunity.location', 'location')
+      .leftJoinAndSelect('opportunity.company', 'company')
+      .leftJoinAndSelect('opportunity.category', 'category')
+      .select([
+        'application.id AS application_id',
+        'application.opportunity_id AS application_opportunity_id',
+        'application.status_id AS application_status_id',
+        'application.user_id AS application_user_id',
+        'application.match_score AS application_match_score',
+        'application.feedback AS application_feedback',
+        'application.youth_feedback AS application_youth_feedback',
+        'application.created_by AS application_created_by',
+        'application.updated_by AS application_updated_by',
+        'application.applied_skills AS application_applied_skills',
+        'application.created_at AS application_created_at',
+        'application.updated_at AS application_updated_at',
+        'status.id AS status_id',
+        'status.status AS status_name',
+        // Opportunity details
+        'opportunity.id AS opportunity_id',
+        'opportunity.title AS opportunity_title',
+        'opportunity.description AS opportunity_description',
+        'opportunity.work_nature AS opportunity_work_nature',
+        'opportunity.opportunity_type AS opportunity_opportunity_type',
+        'opportunity.experience_level AS opportunity_experience_level',
+        'opportunity.min_experience AS opportunity_min_experience',
+        'opportunity.min_salary AS opportunity_min_salary',
+        'opportunity.max_salary AS opportunity_max_salary',
+        'opportunity.status AS opportunity_status',
+        'opportunity.created_by AS opportunity_created_by',
+        'opportunity.updated_by AS opportunity_updated_by',
+        // Location details
+        'location.id AS location_id',
+        'location.city AS location_city',
+        'location.state AS location_state',
+        'location.country AS location_country',
+        // Category details
+        'category.id AS category_id',
+        'category.name AS category_name',
+        // Company details
+        'company.id AS company_id',
+        'company.name AS company_name',
+      ])
+      .where('application.status_id != :archivedStatusId', {
+        archivedStatusId,
+      });
+  }
+
+  // Helper method for applying filters
+  private applyFilters(qb: any, query: any) {
+    if (query.opportunity_id) {
+      qb.andWhere('application.opportunity_id = :opportunity_id', {
+        opportunity_id: query.opportunity_id,
+      });
+    }
+    if (query.status_id) {
+      qb.andWhere('application.status_id = :status_id', {
+        status_id: query.status_id,
+      });
+    }
+    if (query.applied_skills) {
+      const skillsArray = query.applied_skills.split(',');
+      qb.andWhere(
+        `EXISTS (
+          SELECT 1 FROM jsonb_array_elements_text(application.applied_skills) skill_id 
+          WHERE skill_id = ANY(:skillsArray)
+        )`,
+        { skillsArray }
+      );
+    }
+    if (query.search) {
+      qb.andWhere(
+        `(opportunity.title ILIKE :search OR status.status ILIKE :search)`,
+        { search: `%${query.search}%` }
       );
     }
   }
