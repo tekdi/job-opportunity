@@ -334,9 +334,6 @@ export class OpportunityApplicationService {
       qb.offset(offset).limit(limit);
       const applications = await qb.getRawMany();
 
-      // Group applications by opportunity_id
-      const groupedApplications = new Map();
-
       // Fetch applied skill names for each application
       for (const app of applications) {
         let appliedSkillDetails: { id: string; name: string }[] = [];
@@ -359,61 +356,12 @@ export class OpportunityApplicationService {
         }
 
         (app as any)['applied_skills_details'] = appliedSkillDetails;
-
-        if (!groupedApplications.has(app.opportunity_id)) {
-          groupedApplications.set(app.opportunity_id, {
-            opportunity_id: app.opportunity_id,
-            opportunity_title: app.opportunity_title,
-            opportunity_description: app.opportunity_description,
-            opportunity_work_nature: app.opportunity_work_nature,
-            opportunity_opportunity_type: app.opportunity_opportunity_type,
-            opportunity_experience_level: app.opportunity_experience_level,
-            opportunity_min_experience: app.opportunity_min_experience,
-            opportunity_min_salary: app.opportunity_min_salary,
-            opportunity_max_salary: app.opportunity_max_salary,
-            opportunity_status: app.opportunity_status,
-            opportunity_created_by: app.opportunity_created_by,
-            opportunity_updated_by: app.opportunity_updated_by,
-            location: {
-              location_id: app.location_id,
-              city: app.location_city,
-              state: app.location_state,
-              country: app.location_country,
-            },
-            category: {
-              category_id: app.category_id,
-              name: app.category_name,
-            },
-            company: {
-              company_id: app.company_id,
-              name: app.company_name,
-            },
-            applications: [],
-          });
-        }
-
-        groupedApplications.get(app.opportunity_id).applications.push({
-          application_id: app.application_id,
-          application_status_id: {
-            status_id: app.status_id,
-            status_name: app.status_name,
-          },
-          application_user_id: app.application_user_id,
-          application_match_score: app.application_match_score,
-          application_feedback: app.application_feedback,
-          application_youth_feedback: app.application_youth_feedback,
-          application_applied_skills: appliedSkillDetails,
-          application_created_at: app.application_created_at,
-          application_updated_at: app.application_updated_at,
-          application_created_by: app.application_created_by,
-          application_updated_by: app.application_updated_by,
-        });
       }
 
       return APIResponse.success(
         res,
         'FIND_ALL_OPPORTUNITY_APPLICATIONS',
-        { data: Array.from(groupedApplications.values()), total },
+        { data: applications, total },
         HttpStatus.OK,
         'Opportunity applications retrieved successfully'
       );
@@ -622,6 +570,230 @@ export class OpportunityApplicationService {
         'Failed to archive opportunity application',
         'ERROR_ARCHIVE_FAILED',
         'An error occurred while archiving the opportunity application',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+  async getmappedapplication(query: any, res: Response): Promise<any> {
+    try {
+      const page =
+        query.page && !isNaN(query.page)
+          ? Math.max(parseInt(query.page, 10), 1)
+          : 1;
+      let limit =
+        query.limit && !isNaN(query.limit)
+          ? Math.max(parseInt(query.limit, 10), 1)
+          : 10;
+      limit = Math.min(limit, 100); // Prevent too large limits
+      const offset = (page - 1) * limit;
+
+      // Get the "archived" status UUID dynamically
+      const archivedStatus = await this.entityManager.findOne(
+        ApplicationStatus,
+        {
+          where: { status: 'archived' },
+        }
+      );
+
+      if (!archivedStatus) {
+        return APIResponse.error(
+          res,
+          'FIND_ALL_OPPORTUNITY_APPLICATIONS',
+          'ARCHIVED_STATUS_NOT_FOUND',
+          'Archived status not found in application_statuses table.',
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      const qb = this.entityManager
+        .createQueryBuilder(OpportunityApplication, 'application')
+        .leftJoinAndSelect('application.opportunity', 'opportunity')
+        .leftJoinAndSelect('application.status', 'status')
+        .leftJoinAndSelect('opportunity.location', 'location')
+        .leftJoinAndSelect('opportunity.company', 'company')
+        .leftJoinAndSelect('opportunity.category', 'category')
+        .select([
+          'application.id AS application_id',
+          'application.opportunity_id AS application_opportunity_id',
+          'application.status_id AS application_status_id',
+          'application.user_id AS application_user_id',
+          'application.match_score AS application_match_score',
+          'application.feedback AS application_feedback',
+          'application.youth_feedback AS application_youth_feedback',
+          'application.created_by AS application_created_by',
+          'application.updated_by AS application_updated_by',
+          'application.applied_skills AS application_applied_skills',
+          'application.created_at AS application_created_at',
+          'application.updated_at AS application_updated_at',
+          'status.id AS status_id',
+          'status.status AS status_name',
+          // Opportunity details
+          'opportunity.id AS opportunity_id',
+          'opportunity.title AS opportunity_title',
+          'opportunity.description AS opportunity_description',
+          'opportunity.work_nature AS opportunity_work_nature',
+          'opportunity.opportunity_type AS opportunity_opportunity_type',
+          'opportunity.experience_level AS opportunity_experience_level',
+          'opportunity.min_experience AS opportunity_min_experience',
+          'opportunity.min_salary AS opportunity_min_salary',
+          'opportunity.max_salary AS opportunity_max_salary',
+          'opportunity.status AS opportunity_status',
+          'opportunity.created_by AS opportunity_created_by',
+          'opportunity.updated_by AS opportunity_updated_by',
+          // Location details
+          'location.id AS location_id',
+          'location.city AS location_city',
+          'location.state AS location_state',
+          'location.country AS location_country',
+          // Category details
+          'category.id AS category_id',
+          'category.name AS category_name',
+          // Company details
+          'company.id AS company_id',
+          'company.name AS company_name',
+        ])
+        .where('application.status_id != :archivedStatusId', {
+          archivedStatusId: archivedStatus.id,
+        });
+
+      // Apply Filters
+      if (query.opportunity_id) {
+        qb.andWhere('application.opportunity_id = :opportunity_id', {
+          opportunity_id: query.opportunity_id,
+        });
+      }
+
+      if (query.status_id) {
+        qb.andWhere('application.status_id = :status_id', {
+          status_id: query.status_id,
+        });
+      }
+
+      if (query.applied_skills) {
+        const skillsArray = query.applied_skills.split(',');
+        qb.andWhere(
+          `EXISTS (
+                  SELECT 1 FROM jsonb_array_elements_text(application.applied_skills) skill_id 
+                  WHERE skill_id = ANY(:skillsArray)
+              )`,
+          { skillsArray }
+        );
+      }
+
+      if (query.search) {
+        qb.andWhere(
+          `(opportunity.title ILIKE :search OR status.status ILIKE :search)`,
+          { search: `%${query.search}%` }
+        );
+      }
+
+      if (query.orderBy) {
+        const orderColumnMap = {
+          created_at: 'application.created_at',
+          updated_at: 'application.updated_at',
+          opportunity_title: 'opportunity.title',
+          status_name: 'status.status',
+        };
+
+        const orderColumn =
+          orderColumnMap[query.orderBy as keyof typeof orderColumnMap] ||
+          'application.created_at';
+        qb.orderBy(orderColumn, query.order || 'DESC');
+      } else {
+        qb.orderBy('application.created_at', 'DESC');
+      }
+
+      const total = await qb.getCount();
+      qb.offset(offset).limit(limit);
+      const applications = await qb.getRawMany();
+
+      // Group applications by opportunity_id
+      const groupedApplications = new Map();
+
+      for (const app of applications) {
+        let appliedSkillDetails: { id: string; name: string }[] = [];
+
+        if (app.application_applied_skills) {
+          const skillIds = Array.isArray(app.application_applied_skills)
+            ? app.application_applied_skills
+            : JSON.parse(app.application_applied_skills);
+
+          if (skillIds.length > 0) {
+            const skills = await this.entityManager.findBy(Skill, {
+              id: In(skillIds),
+            });
+
+            appliedSkillDetails = skills.map((s) => ({
+              id: s.id,
+              name: s.name,
+            }));
+          }
+        }
+
+        (app as any)['applied_skills_details'] = appliedSkillDetails;
+
+        if (!groupedApplications.has(app.opportunity_id)) {
+          groupedApplications.set(app.opportunity_id, {
+            opportunity_id: app.opportunity_id,
+            opportunity_title: app.opportunity_title,
+            opportunity_description: app.opportunity_description,
+            opportunity_work_nature: app.opportunity_work_nature,
+            opportunity_opportunity_type: app.opportunity_opportunity_type,
+            opportunity_experience_level: app.opportunity_experience_level,
+            opportunity_min_experience: app.opportunity_min_experience,
+            opportunity_min_salary: app.opportunity_min_salary,
+            opportunity_max_salary: app.opportunity_max_salary,
+            opportunity_status: app.opportunity_status,
+            opportunity_created_by: app.opportunity_created_by,
+            opportunity_updated_by: app.opportunity_updated_by,
+            location: {
+              location_id: app.location_id,
+              city: app.location_city,
+              state: app.location_state,
+              country: app.location_country,
+            },
+            category: {
+              category_id: app.category_id,
+              name: app.category_name,
+            },
+            company: {
+              company_id: app.company_id,
+              name: app.company_name,
+            },
+            applications: [],
+          });
+        }
+
+        groupedApplications.get(app.opportunity_id).applications.push({
+          application_id: app.application_id,
+          status: {
+            status_id: app.status_id,
+            status_name: app.status_name,
+          },
+          user_id: app.application_user_id,
+          match_score: app.application_match_score,
+          feedback: app.application_feedback,
+          youth_feedback: app.application_youth_feedback,
+          applied_skills: appliedSkillDetails,
+          created_at: app.application_created_at,
+          updated_at: app.application_updated_at,
+        });
+      }
+
+      return APIResponse.success(
+        res,
+        'FIND_ALL_OPPORTUNITY_APPLICATIONS',
+        { data: Array.from(groupedApplications.values()), total },
+        HttpStatus.OK,
+        'Opportunity applications retrieved successfully'
+      );
+    } catch (error) {
+      return APIResponse.error(
+        res,
+        'FIND_ALL_OPPORTUNITY_APPLICATIONS',
+        'ERROR_FETCHING_APPLICATIONS',
+        'Error fetching opportunity applications',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
