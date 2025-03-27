@@ -190,7 +190,7 @@ export class OpportunityApplicationController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid query parameters',
   })
-  getmappedapplication(@Query() query: any, @Res() res: any) {
-    return this.opportunityApplicationService.getmappedapplication(query, res);
+  getMappedApplication(@Query() query: any, @Res() res: any) {
+    return this.opportunityApplicationService.getMappedApplication(query, res);
   }
 }

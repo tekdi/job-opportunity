@@ -575,7 +575,7 @@ export class OpportunityApplicationService {
     }
   }
 
-  async getmappedapplication(query: any, res: Response): Promise<any> {
+  async getMappedApplication(query: any, res: Response): Promise<any> {
     try {
       const page =
         query.page && !isNaN(query.page)
