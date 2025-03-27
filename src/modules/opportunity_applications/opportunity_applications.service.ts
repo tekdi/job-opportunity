@@ -334,6 +334,9 @@ export class OpportunityApplicationService {
       qb.offset(offset).limit(limit);
       const applications = await qb.getRawMany();
 
+      // Group applications by opportunity_id
+      const groupedApplications = new Map();
+
       // Fetch applied skill names for each application
       for (const app of applications) {
         let appliedSkillDetails: { id: string; name: string }[] = [];
@@ -356,12 +359,61 @@ export class OpportunityApplicationService {
         }
 
         (app as any)['applied_skills_details'] = appliedSkillDetails;
+
+        if (!groupedApplications.has(app.opportunity_id)) {
+          groupedApplications.set(app.opportunity_id, {
+            opportunity_id: app.opportunity_id,
+            opportunity_title: app.opportunity_title,
+            opportunity_description: app.opportunity_description,
+            opportunity_work_nature: app.opportunity_work_nature,
+            opportunity_opportunity_type: app.opportunity_opportunity_type,
+            opportunity_experience_level: app.opportunity_experience_level,
+            opportunity_min_experience: app.opportunity_min_experience,
+            opportunity_min_salary: app.opportunity_min_salary,
+            opportunity_max_salary: app.opportunity_max_salary,
+            opportunity_status: app.opportunity_status,
+            opportunity_created_by: app.opportunity_created_by,
+            opportunity_updated_by: app.opportunity_updated_by,
+            location: {
+              location_id: app.location_id,
+              city: app.location_city,
+              state: app.location_state,
+              country: app.location_country,
+            },
+            category: {
+              category_id: app.category_id,
+              name: app.category_name,
+            },
+            company: {
+              company_id: app.company_id,
+              name: app.company_name,
+            },
+            applications: [],
+          });
+        }
+
+        groupedApplications.get(app.opportunity_id).applications.push({
+          application_id: app.application_id,
+          application_status_id: {
+            status_id: app.status_id,
+            status_name: app.status_name,
+          },
+          application_user_id: app.application_user_id,
+          application_match_score: app.application_match_score,
+          application_feedback: app.application_feedback,
+          application_youth_feedback: app.application_youth_feedback,
+          application_applied_skills: appliedSkillDetails,
+          application_created_at: app.application_created_at,
+          application_updated_at: app.application_updated_at,
+          application_created_by: app.application_created_by,
+          application_updated_by: app.application_updated_by,
+        });
       }
 
       return APIResponse.success(
         res,
         'FIND_ALL_OPPORTUNITY_APPLICATIONS',
-        { data: applications, total },
+        { data: Array.from(groupedApplications.values()), total },
         HttpStatus.OK,
         'Opportunity applications retrieved successfully'
       );
