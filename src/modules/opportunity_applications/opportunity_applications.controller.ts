@@ -179,4 +179,18 @@ export class OpportunityApplicationController {
   ) {
     return this.opportunityApplicationService.archive(res, id, userId);
   }
+
+  @Get('/opportunity/list')
+  @ApiOperation({ summary: 'Get all opportunity applications' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of opportunity applications retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid query parameters',
+  })
+  getMappedApplication(@Query() query: any, @Res() res: any) {
+    return this.opportunityApplicationService.getMappedApplication(query, res);
+  }
 }
