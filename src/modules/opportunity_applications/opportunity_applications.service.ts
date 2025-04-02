@@ -496,7 +496,8 @@ export class OpportunityApplicationService {
         qb.orderBy('application.created_at', 'DESC');
       }
 
-      const total = await qb.getCount();
+      // const total = await qb.clone().getCount();
+
       qb.offset(offset).limit(limit);
       const applications = await qb.getRawMany();
 
@@ -574,6 +575,9 @@ export class OpportunityApplicationService {
           application_updated_by: app.application_updated_by,
         });
       }
+
+      // Get total unique opportunities count
+      const total = groupedApplications.size;
 
       return APIResponse.success(
         res,
