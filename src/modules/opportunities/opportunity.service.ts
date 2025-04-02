@@ -727,7 +727,7 @@ export class OpportunityService {
           .select(['skill.id', 'skill.name'])
           .getRawMany();
       }
-      // Fetch skill names based on skill IDs using `Skill` entity
+      // Fetch benefits names based on benefits IDs using `benefits` entity
       let benefitsDetails: { id: string; name: string }[] = [];
       if (opportunity.benefits && opportunity.benefits.length > 0) {
         benefitsDetails = await this.entityManager
