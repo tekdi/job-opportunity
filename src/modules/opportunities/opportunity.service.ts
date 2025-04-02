@@ -727,11 +727,20 @@ export class OpportunityService {
           .select(['skill.id', 'skill.name'])
           .getRawMany();
       }
+      // Fetch skill names based on skill IDs using `Skill` entity
+      let benefitsDetails: { id: string; name: string }[] = [];
+      if (opportunity.benefits && opportunity.benefits.length > 0) {
+        benefitsDetails = await this.entityManager
+          .createQueryBuilder(Benefit, 'benefit')
+          .where('benefit.id IN (:...ids)', { ids: opportunity.benefits })
+          .select(['benefit.id', 'benefit.name'])
+          .getRawMany();
+      }
 
       return APIResponse.success(
         res,
         'GET_OPPORTUNITY', // Replace with actual API ID if available
-        { data: { ...opportunity, skillDetails }, total: 1 },
+        { data: { ...opportunity, skillDetails, benefitsDetails }, total: 1 },
         HttpStatus.OK,
         'Opportunity successfully retrieved'
       );
