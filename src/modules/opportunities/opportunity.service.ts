@@ -161,6 +161,7 @@ export class OpportunityService {
       opportunity.skills = skills;
       opportunity.created_by = createOpportunityDto.created_by.trim();
       opportunity.updated_by = createOpportunityDto.updated_by.trim();
+      opportunity.currency = createOpportunityDto.currency;
       opportunity.benefits = selectedBenefits;
       opportunity.other_benefit = otherBenefitValue;
 
@@ -273,6 +274,10 @@ export class OpportunityService {
       }
       if (updateOpportunityDto.updated_by !== undefined) {
         updateData.updated_by = updateOpportunityDto.updated_by.trim();
+      }
+
+      if (updateOpportunityDto.currency !== undefined) {
+        updateData.currency = updateOpportunityDto.currency;
       }
 
       if (updateOpportunityDto.skills !== undefined) {
@@ -558,6 +563,13 @@ export class OpportunityService {
       if (query.created_at) {
         qb.andWhere('opportunity.created_at >= :created_at', {
           created_at: query.created_at,
+        });
+      }
+
+      // Add currency filter
+      if (query.currency) {
+        qb.andWhere('opportunity.currency = :currency', {
+          currency: query.currency,
         });
       }
 

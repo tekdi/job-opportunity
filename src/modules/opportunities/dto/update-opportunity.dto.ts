@@ -59,4 +59,7 @@ export class UpdateOpportunityDto extends PartialType(CreateOpportunityDto) {
   @IsEnum(OpportunityPricingType)
   @IsOptional()
   pricing_type?: OpportunityPricingType;
+
+  @IsString()
+  currency?: string;
 }

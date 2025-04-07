@@ -98,4 +98,7 @@ export class CreateOpportunityDto {
   @IsEnum(OpportunityPricingType)
   @IsOptional()
   pricing_type?: OpportunityPricingType = OpportunityPricingType.FREE;
+
+  @IsString()
+  currency?: string;
 }
