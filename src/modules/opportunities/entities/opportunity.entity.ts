@@ -122,4 +122,7 @@ export class Opportunity {
     default: OpportunityPricingType.FREE, // Default free
   })
   pricing_type?: OpportunityPricingType;
+
+  @Column({ type: 'varchar', length: 10 })
+  currency?: string;
 }
