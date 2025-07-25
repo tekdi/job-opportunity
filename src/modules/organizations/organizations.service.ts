@@ -75,7 +75,7 @@ export class OrganizationsService {
   async findAll(query: any, res: any): Promise<any> {
     try {
       const page = query.page ? parseInt(query.page, 10) : 1;
-      const limit = query.limit ? parseInt(query.limit, 10) : 10;
+      const limit = query.limit ? parseInt(query.limit, 10) : null;
 
       const qb = this.entityManager
         .createQueryBuilder(Organization, 'organization')
@@ -115,7 +115,9 @@ export class OrganizationsService {
         qb.orderBy('organization.created_at', 'DESC'); // Default ordering
       }
 
-      qb.skip((page - 1) * limit).take(limit);
+      if (limit) {
+        qb.skip((page - 1) * limit).take(limit);
+      }
 
       const organizations = await qb.getMany();
       // Get the total count of organizations (ignoring pagination)
