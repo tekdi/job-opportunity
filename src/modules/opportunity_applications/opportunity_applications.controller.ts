@@ -22,6 +22,7 @@ import {
   ApiQuery,
   ApiBody,
 } from '@nestjs/swagger';
+import { OpportunityApplicationReportDto } from './dto/opportunity-application-report.dto';
 
 @ApiTags('Opportunity Applications')
 @Controller('opportunity-applications')
@@ -84,6 +85,35 @@ export class OpportunityApplicationController {
   })
   findAll(@Query() query: any, @Res() res: any) {
     return this.opportunityApplicationService.findAll(query, res);
+  }
+
+  @Get('/report')
+  @ApiOperation({
+    summary:
+      'Get all opportunity application report data for all users and opportunities',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description:
+      'All opportunity application report data retrieved successfully',
+    type: [OpportunityApplicationReportDto],
+  })
+  getApplicationReport(@Res() res: any) {
+    return this.opportunityApplicationService.getApplicationReport(res);
+  }
+
+  @Get('/opportunity/list')
+  @ApiOperation({ summary: 'Get all opportunity applications' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'List of opportunity applications retrieved successfully',
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Invalid query parameters',
+  })
+  getMappedApplication(@Query() query: any, @Res() res: any) {
+    return this.opportunityApplicationService.getMappedApplication(query, res);
   }
 
   @Get(':id')
@@ -178,19 +208,5 @@ export class OpportunityApplicationController {
     @Res() res: any
   ) {
     return this.opportunityApplicationService.archive(res, id, userId);
-  }
-
-  @Get('/opportunity/list')
-  @ApiOperation({ summary: 'Get all opportunity applications' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'List of opportunity applications retrieved successfully',
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid query parameters',
-  })
-  getMappedApplication(@Query() query: any, @Res() res: any) {
-    return this.opportunityApplicationService.getMappedApplication(query, res);
   }
 }
