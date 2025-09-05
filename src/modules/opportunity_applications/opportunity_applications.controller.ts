@@ -9,6 +9,7 @@ import {
   Patch,
   Res,
   HttpStatus,
+  Headers,
 } from '@nestjs/common';
 import { OpportunityApplicationService } from './opportunity_applications.service';
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
@@ -98,8 +99,8 @@ export class OpportunityApplicationController {
       'All opportunity application report data retrieved successfully',
     type: [OpportunityApplicationReportDto],
   })
-  getApplicationReport(@Res() res: any) {
-    return this.opportunityApplicationService.getApplicationReport(res);
+  getApplicationReport(@Res() res: any, @Headers() headers: any) {
+    return this.opportunityApplicationService.getApplicationReport(res, headers);
   }
 
   @Get('/opportunity/list')

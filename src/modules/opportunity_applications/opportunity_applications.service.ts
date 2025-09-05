@@ -601,7 +601,7 @@ export class OpportunityApplicationService {
     }
   }
 
-  async getApplicationReport(res: Response): Promise<any> {
+  async getApplicationReport(res: Response, headers: any): Promise<any> {
     try {
       // Get all opportunity applications
       const applications = await this.entityManager.find(
@@ -628,7 +628,7 @@ export class OpportunityApplicationService {
       }
 
       // Fetch youth users list to get user details
-      const youthUsers = await this.userServiceClient.getYouthUsers();
+      const youthUsers = await this.userServiceClient.getYouthUsers(headers);
       
       // Fetch all skills for mapping
       const allSkills = await this.entityManager.find('skills', { select: ['id', 'name'] });

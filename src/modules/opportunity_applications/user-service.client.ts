@@ -46,7 +46,7 @@ interface YouthListResponse {
 export class UserServiceClient {
   constructor(private readonly httpService: HttpService) {}
 
-  async getYouthUsers(): Promise<UserData[]> {
+  async getYouthUsers(headers?: any): Promise<UserData[]> {
     try {
       const url = `${userServiceConfig.baseUrl}${userServiceConfig.endpoints.getYouthList}`;
       
@@ -62,8 +62,8 @@ export class UserServiceClient {
           timeout: userServiceConfig.timeout,
           headers: {
             'Content-Type': 'application/json',
-            'tenantid': process.env.USER_SERVICE_TENANT_ID || 'ef99949b-7f3a-4a5f-806a-e67e683e38f3',
-            'Authorization': `Bearer ${process.env.USER_SERVICE_AUTH_TOKEN || 'eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJKQWV0Z1E5d1c1X1ktaHBwV0lsb3pxb0ExZ3ctNnhvMi1MVzExNjlSblljIn0.eyJleHAiOjE3NTY4MTA2MDYsImlhdCI6MTc1NjcyNDIwNiwianRpIjoiMDU0ZDM1ZDEtNGNlNC00NmFlLWE0N2EtNTczMzI2YTY1MzhhIiwiaXNzIjoiaHR0cHM6Ly9rZXljbG9hay1kZXYuYXNwaXJlbGVhZGVycy5vcmcvYXV0aC9yZWFsbXMvQXNwaXJlTGVhZGVyRGV2Iiwic3ViIjoiMTAwYmE3NzctY2E5OS00Y2VhLThlYzctYzFkZGQ3NjNkOTdiIiwidHlwIjoiQmVhcmVyIiwiYXpwIjoiQXNwaXJlTGVhZGVyRGV2Iiwic2Vzc2lvbl9zdGF0ZSI6IjM3NTYwMGQ1LTZjNzktNDgzOS05ZTI1LTQxYzBlM2MyNDU0NyIsImFjciI6IjEiLCJhbGxvd2VkLW9yaWdpbnMiOlsiLyoiXSwicmVhbG1fYWNjZXNzIjp7InJvbGVzIjpbIm9mZmxpbmVfYWNjZXNzIiwidW1hX2F1dGhvcml6YXRpb24iLCJkZWZhdWx0LXJvbGVzLXByYXRoYW0iXX0sInNjb3BlIjoic3NvLW1ldGFkYXRhIGVtYWlsIHByb2ZpbGUgcHJhdGhhbS1yb2xlIiwic2lkIjoiMzc1NjAwZDUtNmM3OS00ODM5LTllMjUtNDFjMGUzYzI0NTQ3IiwiZW1haWxfdmVyaWZpZWQiOmZhbHNlLCJuYW1lIjoiRG55YW5lc2ggIEsiLCJwcmVmZXJyZWRfdXNlcm5hbWUiOiJkbnlhbmVzaGtAeW9wbWFpbC5jb20iIiwiZ2l2ZW5fbmFtZSI6IkRueWFuZXNoICIsImZhbWlseV9uYW1lIjoiSyIsImVtYWlsIjoiZG55YW5lc2hrQHlvcG1haWwuY29tIn0.ZYnj5Vw-PNmFstmh2cHifoMsJ_DLvjvNpzDWS8QQ_gQknOr63yqZwlou8JpplsgewAq2Bnat3AKT6tBx_1FlJKHQYlytHZZvCbUnq3iNVZOQFhjjAu453K-RjxsXs_JfAPYg4GfA_mMSRvD_MVVXooe7Sf7eAaCo5uoyaWsLnAJKrURZOsYRJcboBhJRt2X--oalW28iBteyVwh_jzzBO4-VDn0eEevhdjJHAOfKE6ZzULp7S3kWaeWX72Te_p3_UfN7OHkIwbGUjaHmku3OhpFivz2JLP3Ydf0RtmeQm4LMk39UACzx0m1Fvcj13HPGozKdSCm5Km7IEzuX-qaLMEw'}`
+            'tenantid': headers?.['tenantid'] || process.env.USER_SERVICE_TENANT_ID ,
+            'Authorization': headers?.['authorization'] || `Bearer ${process.env.USER_SERVICE_AUTH_TOKEN }`
           }
         })
       );
