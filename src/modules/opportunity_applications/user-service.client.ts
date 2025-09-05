@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { userServiceConfig } from '../../config/user-service.config';
@@ -44,6 +44,8 @@ interface YouthListResponse {
 
 @Injectable()
 export class UserServiceClient {
+  private readonly logger = new Logger(UserServiceClient.name);
+
   constructor(private readonly httpService: HttpService) {}
 
   async getYouthUsers(headers?: any): Promise<UserData[]> {
@@ -99,7 +101,7 @@ export class UserServiceClient {
       );
       return (response.data as UserData);
     } catch (error) {
-      console.error('Error fetching user data:', error);
+      this.logger.error('Error fetching user data:', error);
       return null;
     }
   }
@@ -114,7 +116,7 @@ export class UserServiceClient {
       );
       return (response.data as UserData);
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      this.logger.error('Error fetching user profile:', error);
       return null;
     }
   }

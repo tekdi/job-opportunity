@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { EntityManager, In } from 'typeorm';
 import { OpportunityApplication } from './entities/opportunity-application.entity';
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
@@ -12,6 +12,8 @@ import { UserServiceClient } from './user-service.client';
 
 @Injectable()
 export class OpportunityApplicationService {
+  private readonly logger = new Logger(OpportunityApplicationService.name);
+
   constructor(
     private readonly entityManager: EntityManager,
     private readonly userServiceClient: UserServiceClient
@@ -650,7 +652,7 @@ export class OpportunityApplicationService {
         `All opportunity application report data retrieved successfully for ${reportData.length} applications`
       );
     } catch (error) {
-      console.error('Error in getApplicationReport:', error);
+      this.logger.error('Error in getApplicationReport:', error);
       return APIResponse.error(
         res,
         'GET_APPLICATION_REPORT',
