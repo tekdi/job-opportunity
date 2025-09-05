@@ -97,6 +97,20 @@ export class OpportunityApplicationController {
     summary:
       'Get all opportunity application report data for all users and opportunities',
   })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of records to return (default: all records)',
+    example: 10
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of records to skip (default: 0)',
+    example: 0
+  })
   @ApiExtraModels(OpportunityApplicationReportDto)
   @ApiOkResponse({
     description: 'All opportunity application report data retrieved successfully',
@@ -108,13 +122,26 @@ export class OpportunityApplicationController {
           items: { $ref: getSchemaPath(OpportunityApplicationReportDto) }
         },
         total: { type: 'number' },
+        limit: { type: 'number' },
+        offset: { type: 'number' },
+        hasMore: { type: 'boolean' },
         message: { type: 'string' },
         code: { type: 'string' }
       }
     }
   })
-  getApplicationReport(@Res() res: Response, @Headers() headers: any) {
-    return this.opportunityApplicationService.getApplicationReport(res, headers);
+  getApplicationReport(
+    @Res() res: Response,
+    @Headers() headers: any,
+    @Query('limit') limit?: number,
+    @Query('offset') offset?: number
+  ) {
+    return this.opportunityApplicationService.getApplicationReport(
+      res,
+      headers,
+      limit,
+      offset
+    );
   }
 
   @Get('/opportunity/list')
