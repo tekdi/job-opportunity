@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Headers,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { OpportunityApplicationService } from './opportunity_applications.service';
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
 import { UpdateOpportunityApplicationDto } from './dto/update-opportunity-application.dto';
@@ -22,6 +23,9 @@ import {
   ApiParam,
   ApiQuery,
   ApiBody,
+  ApiOkResponse,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger';
 import { OpportunityApplicationReportDto } from './dto/opportunity-application-report.dto';
 
@@ -51,7 +55,7 @@ export class OpportunityApplicationController {
   create(
     @Body() createOpportunityApplicationDto: CreateOpportunityApplicationDto,
     @Query('userId') userId: string,
-    @Res() res: any // Ensure res is properly typed
+    @Res() res: Response
   ) {
     // Validate userId
     if (!userId) {
@@ -84,7 +88,7 @@ export class OpportunityApplicationController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid query parameters',
   })
-  findAll(@Query() query: any, @Res() res: any) {
+  findAll(@Query() query: any, @Res() res: Response) {
     return this.opportunityApplicationService.findAll(query, res);
   }
 
@@ -93,13 +97,23 @@ export class OpportunityApplicationController {
     summary:
       'Get all opportunity application report data for all users and opportunities',
   })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description:
-      'All opportunity application report data retrieved successfully',
-    type: [OpportunityApplicationReportDto],
+  @ApiExtraModels(OpportunityApplicationReportDto)
+  @ApiOkResponse({
+    description: 'All opportunity application report data retrieved successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'array',
+          items: { $ref: getSchemaPath(OpportunityApplicationReportDto) }
+        },
+        total: { type: 'number' },
+        message: { type: 'string' },
+        code: { type: 'string' }
+      }
+    }
   })
-  getApplicationReport(@Res() res: any, @Headers() headers: any) {
+  getApplicationReport(@Res() res: Response, @Headers() headers: any) {
     return this.opportunityApplicationService.getApplicationReport(res, headers);
   }
 
@@ -113,7 +127,7 @@ export class OpportunityApplicationController {
     status: HttpStatus.BAD_REQUEST,
     description: 'Invalid query parameters',
   })
-  getMappedApplication(@Query() query: any, @Res() res: any) {
+  getMappedApplication(@Query() query: any, @Res() res: Response) {
     return this.opportunityApplicationService.getMappedApplication(query, res);
   }
 
@@ -132,7 +146,7 @@ export class OpportunityApplicationController {
     required: true,
     description: 'ID of the opportunity application',
   })
-  findOne(@Param('id') id: string, @Res() res: any) {
+  findOne(@Param('id') id: string, @Res() res: Response) {
     return this.opportunityApplicationService.findOne(id, res);
   }
 
@@ -161,7 +175,7 @@ export class OpportunityApplicationController {
     @Param('id') id: string,
     @Query('userId') userId: string,
     @Body() updateOpportunityApplicationDto: UpdateOpportunityApplicationDto,
-    @Res() res: any
+    @Res() res: Response
   ) {
     if (!userId) {
       return APIResponse.error(
@@ -206,7 +220,7 @@ export class OpportunityApplicationController {
   async archive(
     @Param('id') id: string,
     @Query('userId') userId: string,
-    @Res() res: any
+    @Res() res: Response
   ) {
     return this.opportunityApplicationService.archive(res, id, userId);
   }

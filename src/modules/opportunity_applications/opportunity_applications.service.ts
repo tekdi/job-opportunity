@@ -6,6 +6,7 @@ import { UpdateOpportunityApplicationDto } from './dto/update-opportunity-applic
 import { Opportunity } from '../opportunities/entities/opportunity.entity';
 import { ApplicationStatus } from '../application_statuses/entities/application_status.entity';
 import { Skill } from '../skills/entities/skill.entity';
+import { Benefit } from '../benefits/entities/benefits.entity';
 import { Response } from 'express';
 import APIResponse from 'modules/common/responses/response';
 import { UserServiceClient } from './user-service.client';
@@ -620,34 +621,39 @@ export class OpportunityApplicationService {
       );
 
       if (!applications || applications.length === 0) {
-        return APIResponse.error(
+        return APIResponse.success(
           res,
           'GET_APPLICATION_REPORT',
-          'NO_APPLICATIONS_FOUND',
-          'No applications found in the system',
-          HttpStatus.NOT_FOUND
+          { data: [], total: 0 },
+          HttpStatus.OK,
+          'No applications found'
         );
       }
 
       // Fetch youth users list to get user details
-      const youthUsers = await this.userServiceClient.getYouthUsers(headers);
+      const authHeaders = headers?.authorization ? { authorization: headers.authorization } : {};
+      const youthUsers = await this.userServiceClient.getYouthUsers(authHeaders).catch(err => {
+        this.logger.warn(`getYouthUsers failed: ${err?.message ?? err}`);
+        return [];
+      });
       
       // Fetch all skills for mapping
-      const allSkills = await this.entityManager.find('skills', { select: ['id', 'name'] });
+      const allSkills = await this.entityManager.find(Skill, { select: ['id', 'name'] });
       
       // Fetch all benefits for mapping
-      const allBenefits = await this.entityManager.find('benefits', { select: ['id', 'name'] });
+      const allBenefits = await this.entityManager.find(Benefit, { select: ['id', 'name'] });
       
       // Build report data for all applications
+      const youthIndex = new Map(youthUsers.map(u => [u.userId, u]));
       const reportData = applications.map(application => {
-        const userData = youthUsers.find(user => user.userId === application.user_id);
+        const userData = application.user_id ? youthIndex.get(application.user_id) : undefined;
         return this.buildReportData(application, userData, allSkills, allBenefits);
       });
 
       return APIResponse.success(
         res,
         'GET_APPLICATION_REPORT',
-        reportData,
+        { data: reportData, total: reportData.length },
         HttpStatus.OK,
         `All opportunity application report data retrieved successfully for ${reportData.length} applications`
       );
@@ -803,9 +809,9 @@ export class OpportunityApplicationService {
       
       // Application status
       status: application.status?.status || 'Not specified',
-      doj: new Date(), // This would come from application or opportunity
-      startDateForAttachment: new Date(), // This would come from application
-      endDateForAttachment: new Date(), // This would come from application
+      doj: application.created_at || null,
+      startDateForAttachment: application.created_at || null,
+      endDateForAttachment: application.updated_at || null,
       
       // Benefits & Work details
       benefits: opportunity?.benefits ? mapBenefitIdsToNames(opportunity.benefits) : [],

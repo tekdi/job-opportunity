@@ -64,13 +64,12 @@ export class UserServiceClient {
           timeout: userServiceConfig.timeout,
           headers: {
             'Content-Type': 'application/json',
-            'tenantid': headers?.['tenantid'] || process.env.USER_SERVICE_TENANT_ID ,
-            'Authorization': headers?.['authorization'] || `Bearer ${process.env.USER_SERVICE_AUTH_TOKEN }`
+            'Authorization': headers?.['authorization'] || `Bearer ${process.env.USER_SERVICE_AUTH_TOKEN}`
           }
         })
       );
       
-      const responseData = response.data as YouthListResponse;
+      const responseData = (response as any).data as YouthListResponse;
       
       // Check if response has the expected structure
       if (responseData.responseCode === 200 && responseData.result) {
@@ -99,7 +98,7 @@ export class UserServiceClient {
           timeout: userServiceConfig.timeout,
         })
       );
-      return (response.data as UserData);
+      return ((response as any).data as UserData);
     } catch (error) {
       this.logger.error('Error fetching user data:', error);
       return null;
@@ -114,7 +113,7 @@ export class UserServiceClient {
           timeout: userServiceConfig.timeout,
         })
       );
-      return (response.data as UserData);
+      return ((response as any).data as UserData);
     } catch (error) {
       this.logger.error('Error fetching user profile:', error);
       return null;
