@@ -604,27 +604,41 @@ export class OpportunityApplicationService {
     }
   }
 
-  async getApplicationReport(res: Response, headers: any): Promise<any> {
+  async getApplicationReport(res: Response, headers: any, limit?: number, offset?: number): Promise<any> {
     try {
-      // Get all opportunity applications
-      const applications = await this.entityManager.find(
-        OpportunityApplication,
-        {
-          relations: [
-            'opportunity',
-            'opportunity.location',
-            'opportunity.company',
-            'opportunity.category',
-            'status',
-          ],
-        }
-      );
+      // Get total count first
+      const totalCount = await this.entityManager.count(OpportunityApplication);
+      
+      // Get opportunity applications with pagination
+      const queryBuilder = this.entityManager
+        .createQueryBuilder(OpportunityApplication, 'application')
+        .leftJoinAndSelect('application.opportunity', 'opportunity')
+        .leftJoinAndSelect('opportunity.location', 'location')
+        .leftJoinAndSelect('opportunity.company', 'company')
+        .leftJoinAndSelect('opportunity.category', 'category')
+        .leftJoinAndSelect('application.status', 'status');
+
+      // Apply pagination if provided
+      if (limit !== undefined && limit > 0) {
+        queryBuilder.limit(limit);
+      }
+      if (offset !== undefined && offset >= 0) {
+        queryBuilder.offset(offset);
+      }
+
+      const applications = await queryBuilder.getMany();
 
       if (!applications || applications.length === 0) {
         return APIResponse.success(
           res,
           'GET_APPLICATION_REPORT',
-          { data: [], total: 0 },
+          { 
+            data: [], 
+            total: totalCount,
+            limit: limit || null,
+            offset: offset || 0,
+            hasMore: false
+          },
           HttpStatus.OK,
           'No applications found'
         );
@@ -650,12 +664,23 @@ export class OpportunityApplicationService {
         return this.buildReportData(application, userData, allSkills, allBenefits);
       });
 
+      // Calculate pagination metadata
+      const currentOffset = offset || 0;
+      const currentLimit = limit || totalCount;
+      const hasMore = currentOffset + reportData.length < totalCount;
+
       return APIResponse.success(
         res,
         'GET_APPLICATION_REPORT',
-        { data: reportData, total: reportData.length },
+        { 
+          data: reportData, 
+          total: totalCount,
+          limit: currentLimit,
+          offset: currentOffset,
+          hasMore: hasMore
+        },
         HttpStatus.OK,
-        `All opportunity application report data retrieved successfully for ${reportData.length} applications`
+        `All opportunity application report data retrieved successfully for ${reportData.length} applications (${currentOffset + 1}-${currentOffset + reportData.length} of ${totalCount})`
       );
     } catch (error) {
       this.logger.error('Error in getApplicationReport:', error);
