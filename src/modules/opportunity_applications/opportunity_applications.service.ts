@@ -1,4 +1,4 @@
-import { Injectable, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpStatus, Logger } from '@nestjs/common';
 import { EntityManager, In } from 'typeorm';
 import { OpportunityApplication } from './entities/opportunity-application.entity';
 import { CreateOpportunityApplicationDto } from './dto/create-opportunity-application.dto';
@@ -6,12 +6,19 @@ import { UpdateOpportunityApplicationDto } from './dto/update-opportunity-applic
 import { Opportunity } from '../opportunities/entities/opportunity.entity';
 import { ApplicationStatus } from '../application_statuses/entities/application_status.entity';
 import { Skill } from '../skills/entities/skill.entity';
+import { Benefit } from '../benefits/entities/benefits.entity';
 import { Response } from 'express';
 import APIResponse from 'modules/common/responses/response';
+import { UserServiceClient } from './user-service.client';
 
 @Injectable()
 export class OpportunityApplicationService {
-  constructor(private readonly entityManager: EntityManager) {}
+  private readonly logger = new Logger(OpportunityApplicationService.name);
+
+  constructor(
+    private readonly entityManager: EntityManager,
+    private readonly userServiceClient: UserServiceClient
+  ) {}
 
   async create(
     createDto: CreateOpportunityApplicationDto,
@@ -594,6 +601,262 @@ export class OpportunityApplicationService {
         'Error fetching opportunity applications',
         HttpStatus.INTERNAL_SERVER_ERROR
       );
+    }
+  }
+
+  async getApplicationReport(res: Response, headers: any): Promise<any> {
+    try {
+      // Get all opportunity applications
+      const applications = await this.entityManager.find(
+        OpportunityApplication,
+        {
+          relations: [
+            'opportunity',
+            'opportunity.location',
+            'opportunity.company',
+            'opportunity.category',
+            'status',
+          ],
+        }
+      );
+
+      if (!applications || applications.length === 0) {
+        return APIResponse.success(
+          res,
+          'GET_APPLICATION_REPORT',
+          { data: [], total: 0 },
+          HttpStatus.OK,
+          'No applications found'
+        );
+      }
+
+      // Fetch youth users list to get user details
+      const authHeaders = headers?.authorization ? { authorization: headers.authorization } : {};
+      const youthUsers = await this.userServiceClient.getYouthUsers(authHeaders).catch(err => {
+        this.logger.warn(`getYouthUsers failed: ${err?.message ?? err}`);
+        return [];
+      });
+      
+      // Fetch all skills for mapping
+      const allSkills = await this.entityManager.find(Skill, { select: ['id', 'name'] });
+      
+      // Fetch all benefits for mapping
+      const allBenefits = await this.entityManager.find(Benefit, { select: ['id', 'name'] });
+      
+      // Build report data for all applications
+      const youthIndex = new Map(youthUsers.map(u => [u.userId, u]));
+      const reportData = applications.map(application => {
+        const userData = application.user_id ? youthIndex.get(application.user_id) : undefined;
+        return this.buildReportData(application, userData, allSkills, allBenefits);
+      });
+
+      return APIResponse.success(
+        res,
+        'GET_APPLICATION_REPORT',
+        { data: reportData, total: reportData.length },
+        HttpStatus.OK,
+        `All opportunity application report data retrieved successfully for ${reportData.length} applications`
+      );
+    } catch (error) {
+      this.logger.error('Error in getApplicationReport:', error);
+      return APIResponse.error(
+        res,
+        'GET_APPLICATION_REPORT',
+        'INTERNAL_SERVER_ERROR',
+        'An error occurred while fetching the report',
+        HttpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+  }
+
+
+
+  private buildReportData(application: any, userData: any, allSkills: any[], allBenefits: any[]): any {
+    
+    const opportunity = application.opportunity;
+    const location = opportunity?.location;
+    const company = opportunity?.company;
+    const category = opportunity?.category;
+
+    // Helper function to get custom field value
+    const getCustomFieldValue = (label: string): string => {
+      if (!userData?.customFields) return 'Not specified';
+      const field = userData.customFields.find((f: any) => f.label.toLowerCase().includes(label.toLowerCase()));
+      return field ? field.value : 'Not specified';
+    };
+
+    // Helper function to map skill IDs to skill names
+    const mapSkillIdsToNames = (skillIds: string): string[] => {
+      if (!skillIds || !allSkills || allSkills.length === 0) return [];
+      
+      try {
+        // Split comma-separated skill IDs
+        const ids = skillIds.split(',').map(id => id.trim());
+        
+        // Map each ID to skill name
+        const skillNames = ids.map(id => {
+          const skill = allSkills.find(s => s.id === id);
+          return skill ? skill.name : id; // Return ID if skill not found
+        });
+        
+        return skillNames;
+      } catch (error) {
+        return [];
+      }
+    };
+
+    // Helper function to map benefit IDs to benefit names
+    const mapBenefitIdsToNames = (benefitIds: string[]): string[] => {
+      if (!benefitIds || !Array.isArray(benefitIds) || !allBenefits || allBenefits.length === 0) return [];
+      
+      try {
+        // Map each ID to benefit name
+        const benefitNames = benefitIds.map(id => {
+          const benefit = allBenefits.find(b => b.id === id);
+          return benefit ? benefit.name : id; // Return ID if benefit not found
+        });
+        
+        return benefitNames;
+      } catch (error) {
+        return [];
+      }
+    };
+
+    // Calculate age from date of birth or custom field
+    let age = null;
+    if (userData?.dob) {
+      try {
+        age = this.calculateAge(new Date(userData.dob));
+      } catch (error) {
+        age = null;
+      }
+    }
+    
+    // If age calculation failed, try to get from custom field AGE
+    if (age === null || isNaN(age)) {
+      const customAge = getCustomFieldValue('AGE');
+      if (customAge !== 'Not specified') {
+        try {
+          age = parseInt(customAge, 10);
+        } catch (error) {
+          age = null;
+        }
+      }
+    }
+    
+    // If still no age, try to get from custom field with different labels
+    if (age === null || isNaN(age)) {
+      const ageLabels = ['age', 'AGE', 'Age'];
+      for (const label of ageLabels) {
+        const customAge = getCustomFieldValue(label);
+        if (customAge !== 'Not specified') {
+          try {
+            age = parseInt(customAge, 10);
+            break;
+          } catch (error) {
+            // Continue to next label
+          }
+        }
+      }
+    }
+    
+    // Ensure age is a valid number or null
+    if (age !== null && typeof age === 'number' && (age < 0 || age > 120)) {
+      age = null;
+    }
+    
+    return {
+      // User details mapped from user service
+      firstName: userData?.firstName || 'Unknown',
+      middleName: userData?.middleName || '',
+      lastName: userData?.lastName || 'User',
+      emailId: userData?.email || 'No email available',
+      phoneNumber: userData?.mobile || 'No phone available',
+      age: age,
+      gender: getCustomFieldValue('GENDER') !== 'Not specified' ? getCustomFieldValue('GENDER') : 
+              userData?.gender || 'Not specified',
+      
+      // Location information from custom fields or opportunity
+      country: getCustomFieldValue('COUNTRY') !== 'Not specified' ? getCustomFieldValue('COUNTRY') : 
+               location?.country || 'Not specified',
+      county: getCustomFieldValue('STATES') !== 'Not specified' ? getCustomFieldValue('STATES') : 
+              location?.state || 'Not specified',
+      subCounty: getCustomFieldValue('CITY') !== 'Not specified' ? getCustomFieldValue('CITY') : 
+                 location?.city || 'Not specified',
+      
+      // Education & Training from custom fields
+      highestEducationQualification: getCustomFieldValue('highest education qualification'),
+      centerName: getCustomFieldValue('CITY') !== 'Not specified' ? getCustomFieldValue('CITY') : 
+                 (location?.city || 'Not specified'),
+      tvetsEnrollmentNumber: getCustomFieldValue('TVETS'),
+      courses: getCustomFieldValue('COURSES') !== 'Not specified' ? 
+               getCustomFieldValue('COURSES').split(', ') : 
+               application.applied_skills || [],
+      skills: getCustomFieldValue('SKILL') !== 'Not specified' ? 
+              mapSkillIdsToNames(getCustomFieldValue('SKILL')) : 
+              [],
+      passYear: new Date().getFullYear(),
+      
+      // Opportunity details
+      companyName: company?.name || 'Not specified',
+      title: opportunity?.title || 'Not specified',
+      description: opportunity?.description || 'Not specified',
+      opportunityType: opportunity?.opportunity_type || 'Not specified',
+      experienceLevel: opportunity?.experience_level || 'Not specified',
+      salary: opportunity?.min_salary || opportunity?.max_salary || 0,
+      industryName: category?.name || 'Not specified',
+      industryLocation: location ? `${location.city || ''}, ${location.state || ''}, ${location.country || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : 'Not specified',
+      
+      // Application status
+      status: application.status?.status || 'Not specified',
+      doj: application.created_at || null,
+      startDateForAttachment: application.created_at || null,
+      endDateForAttachment: application.updated_at || null,
+      
+      // Benefits & Work details
+      benefits: opportunity?.benefits ? mapBenefitIdsToNames(opportunity.benefits) : [],
+      otherBenefits: opportunity?.other_benefit || '',
+      workMode: opportunity?.work_nature || 'Not specified',
+      offerLetterProvided: opportunity?.offer_letter_provided || false,
+      rejectionReason: opportunity?.rejection_reason || '',
+      
+      // Additional application details
+      applicationId: application.id,
+      userId: application.user_id,
+      matchScore: application.match_score,
+      feedback: application.feedback,
+      youthFeedback: application.youth_feedback,
+      appliedSkills: application.applied_skills ? mapSkillIdsToNames(application.applied_skills.join(',')) : [],
+      createdAt: application.created_at,
+      updatedAt: application.updated_at,
+    };
+  }
+
+  private calculateAge(dateOfBirth: Date | string): number {
+    try {
+      const today = new Date();
+      const birthDate = new Date(dateOfBirth);
+      
+      // Check if the date is valid
+      if (isNaN(birthDate.getTime())) {
+        throw new Error('Invalid date format');
+      }
+      
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      
+      // Ensure age is reasonable (between 0 and 120)
+      if (age < 0 || age > 120) {
+        throw new Error('Age out of reasonable range');
+      }
+      
+      return age;
+    } catch (error) {
+      throw error;
     }
   }
 
