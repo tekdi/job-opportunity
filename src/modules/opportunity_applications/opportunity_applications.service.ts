@@ -606,17 +606,37 @@ export class OpportunityApplicationService {
 
   async getApplicationReport(res: Response, headers: any, limit?: number, offset?: number): Promise<any> {
     try {
-      // Get total count first
-      const totalCount = await this.entityManager.count(OpportunityApplication);
+      // Get archived status to exclude archived applications
+      const archivedStatus = await this.getArchivedStatus(res);
+      if (!archivedStatus) {
+        return APIResponse.error(
+          res,
+          'GET_APPLICATION_REPORT',
+          'ARCHIVED_STATUS_NOT_FOUND',
+          'Archived status not found in application_statuses table.',
+          HttpStatus.NOT_FOUND
+        );
+      }
+
+      // Get total count excluding archived applications
+      const totalCount = await this.entityManager
+        .createQueryBuilder(OpportunityApplication, 'application')
+        .where('application.status_id != :archivedStatusId', {
+          archivedStatusId: archivedStatus.id,
+        })
+        .getCount();
       
-      // Get opportunity applications with pagination
+      // Get opportunity applications with pagination, excluding archived
       const queryBuilder = this.entityManager
         .createQueryBuilder(OpportunityApplication, 'application')
         .leftJoinAndSelect('application.opportunity', 'opportunity')
         .leftJoinAndSelect('opportunity.location', 'location')
         .leftJoinAndSelect('opportunity.company', 'company')
         .leftJoinAndSelect('opportunity.category', 'category')
-        .leftJoinAndSelect('application.status', 'status');
+        .leftJoinAndSelect('application.status', 'status')
+        .where('application.status_id != :archivedStatusId', {
+          archivedStatusId: archivedStatus.id,
+        });
 
       // Apply pagination if provided
       if (limit !== undefined && limit > 0) {
@@ -645,7 +665,11 @@ export class OpportunityApplicationService {
       }
 
       // Fetch youth users list to get user details
-      const authHeaders = headers?.authorization ? { authorization: headers.authorization } : {};
+      const authHeaders = {
+        authorization: headers?.authorization,
+        tenantid: headers?.tenantid,
+        academicyearid: headers?.academicyearid
+      };
       const youthUsers = await this.userServiceClient.getYouthUsers(authHeaders).catch(err => {
         this.logger.warn(`getYouthUsers failed: ${err?.message ?? err}`);
         return [];
@@ -659,9 +683,28 @@ export class OpportunityApplicationService {
       
       // Build report data for all applications
       const youthIndex = new Map(youthUsers.map(u => [u.userId, u]));
+      
+      // Fetch cohort information for each user using the cohort API
+      const cohortPromises = applications.map(async (application) => {
+        if (application.user_id) {
+          try {
+            const cohortName = await this.userServiceClient.getUserCohort(application.user_id, authHeaders);
+            return { userId: application.user_id, cohortName };
+          } catch (error) {
+            this.logger.warn(`Failed to fetch cohort for user ${application.user_id}: ${error instanceof Error ? error.message : String(error)}`);
+            return { userId: application.user_id, cohortName: null };
+          }
+        }
+        return { userId: null, cohortName: null };
+      });
+      
+      const cohortResults = await Promise.all(cohortPromises);
+      const cohortIndex = new Map(cohortResults.map(c => [c.userId, c.cohortName]));
+      
       const reportData = applications.map(application => {
         const userData = application.user_id ? youthIndex.get(application.user_id) : undefined;
-        return this.buildReportData(application, userData, allSkills, allBenefits);
+        const cohortName = application.user_id ? cohortIndex.get(application.user_id) : 'Default Cohort';
+        return this.buildReportData(application, userData, allSkills, allBenefits, cohortName);
       });
 
       // Calculate pagination metadata
@@ -696,7 +739,7 @@ export class OpportunityApplicationService {
 
 
 
-  private buildReportData(application: any, userData: any, allSkills: any[], allBenefits: any[]): any {
+  private buildReportData(application: any, userData: any, allSkills: any[], allBenefits: any[], cohortName?: string | null): any {
     
     const opportunity = application.opportunity;
     const location = opportunity?.location;
@@ -811,8 +854,7 @@ export class OpportunityApplicationService {
       
       // Education & Training from custom fields
       highestEducationQualification: getCustomFieldValue('highest education qualification'),
-      centerName: getCustomFieldValue('CITY') !== 'Not specified' ? getCustomFieldValue('CITY') : 
-                 (location?.city || 'Not specified'),
+      centerName: cohortName || 'Not specified',
       tvetsEnrollmentNumber: getCustomFieldValue('TVETS'),
       courses: getCustomFieldValue('COURSES') !== 'Not specified' ? 
                getCustomFieldValue('COURSES').split(', ') : 
