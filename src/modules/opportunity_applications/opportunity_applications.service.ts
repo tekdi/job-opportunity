@@ -871,7 +871,7 @@ export class OpportunityApplicationService {
       description: opportunity?.description || 'Not specified',
       opportunityType: opportunity?.opportunity_type || 'Not specified',
       experienceLevel: opportunity?.experience_level || 'Not specified',
-      salary: opportunity?.min_salary || opportunity?.max_salary || 0,
+      salary: opportunity?.max_salary || 0,
       industryName: category?.name || 'Not specified',
       industryLocation: location ? `${location.city || ''}, ${location.state || ''}, ${location.country || ''}`.replace(/^,\s*/, '').replace(/,\s*$/, '') : 'Not specified',
       
