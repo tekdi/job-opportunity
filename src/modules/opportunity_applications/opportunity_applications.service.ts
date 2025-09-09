@@ -636,7 +636,8 @@ export class OpportunityApplicationService {
         .leftJoinAndSelect('application.status', 'status')
         .where('application.status_id != :archivedStatusId', {
           archivedStatusId: archivedStatus.id,
-        });
+        })
+        .groupBy('application.opportunity_id, application.id, application.status_id, application.user_id, application.match_score, application.feedback, application.youth_feedback, application.created_by, application.updated_by, application.applied_skills, application.created_at, application.updated_at, opportunity.id, opportunity.title, opportunity.description, opportunity.work_nature, opportunity.opportunity_type, opportunity.experience_level, opportunity.min_experience, opportunity.min_salary, opportunity.max_salary, opportunity.no_of_candidates, opportunity.status, opportunity.rejection_reason, opportunity.skills, opportunity.created_by, opportunity.updated_by, opportunity.updated_at, opportunity.benefits, opportunity.other_benefit, opportunity.created_at, opportunity.offer_letter_provided, opportunity.pricing_type, opportunity.currency, location.id, location.city, location.state, location.country, location.latitude, location.longitude, location.created_by, location.updated_by, location.created_at, location.updated_at, company.id, company.name, company.description, company.website, company.created_by, company.updated_by, company.created_at, company.updated_at, category.id, category.name, category.created_by, category.updated_by, category.created_at, category.updated_at, status.id, status.status, status.created_at, status.updated_at');
 
       // Apply pagination if provided
       if (limit !== undefined && limit > 0) {
