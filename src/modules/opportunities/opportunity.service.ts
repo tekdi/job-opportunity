@@ -550,6 +550,11 @@ export class OpportunityService {
           work_nature: query.work_nature,
         });
       }
+      if (query.location) {
+        qb.andWhere('opportunity.location_id = :location', {
+          location: query.location,
+        });
+      }
       if (query.min_salary) {
         qb.andWhere('opportunity.min_salary >= :min_salary', {
           min_salary: query.min_salary,
