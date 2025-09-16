@@ -96,4 +96,10 @@ export class OpportunityApplicationReportDto {
 
   @ApiProperty({ description: 'Rejection Reason' })
   rejectionReason?: string;
+
+  @ApiProperty({ description: 'Created By User ID' })
+  createdBy?: string;
+
+  @ApiProperty({ description: 'Updated By User ID' })
+  updatedBy?: string;
 } 
