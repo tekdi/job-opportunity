@@ -897,6 +897,8 @@ export class OpportunityApplicationService {
       appliedSkills: application.applied_skills ? mapSkillIdsToNames(application.applied_skills.join(',')) : [],
       createdAt: application.created_at,
       updatedAt: application.updated_at,
+      createdBy: application.created_by,
+      updatedBy: application.updated_by,
     };
   }
 
